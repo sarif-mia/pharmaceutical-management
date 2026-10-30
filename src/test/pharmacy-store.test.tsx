@@ -45,3 +45,13 @@ describe("strip & generic", () => {
     expect(alt.map((a) => a.id)).toEqual(["z"]);
   });
 });
+
+import { ledger } from "@/lib/pharmacy-store";
+describe("ledger", () => {
+  beforeEach(() => actions.reset());
+  it("payment lowers running balance", () => {
+    actions.addPayment({ kind: "supplier", partyId: "s1", amount: 50 });
+    const rows = ledger(getState(), "supplier", "s1");
+    expect(rows.at(-1)!.balance).toBe(150);
+  });
+});
