@@ -42,9 +42,9 @@ function POS() {
 
   const add = (id: string) => {
     const m = medicines.find((x) => x.id === id)!;
-    if (isExpired(m)) return toast.error(`${m.name} এর মেয়াদ শেষ`);
+    if (isExpired(m)) return void toast.error(`${m.name} এর মেয়াদ শেষ`);
     const inCart = cart.find((c) => c.medicineId === id)?.qty ?? 0;
-    if (inCart + 1 > m.stock) return toast.error(`স্টকে মাত্র ${m.stock}টি আছে`);
+    if (inCart + 1 > m.stock) return void toast.error(`স্টকে মাত্র ${m.stock}টি আছে`);
     setCart((c) => (inCart ? c.map((x) => (x.medicineId === id ? { ...x, qty: x.qty + 1 } : x)) : [...c, { medicineId: id, qty: 1 }]));
   };
   const setQty = (id: string, qty: number) => {
@@ -55,7 +55,7 @@ function POS() {
 
   const checkout = () => {
     const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null });
-    if (typeof r === "string") return toast.error(r);
+    if (typeof r === "string") return void toast.error(r);
     toast.success(`বিক্রি সম্পন্ন — ${taka(r.total)}`);
     setDone(r);
     setCart([]); setDiscount(0); setPaid(""); setCustomerId(""); setMethod("cash"); setQ("");

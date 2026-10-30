@@ -31,9 +31,9 @@ function Dashboard() {
 
   const top = Object.values(
     sales.flatMap((s) => s.items).reduce<Record<string, { name: string; qty: number; amt: number }>>((acc, i) => {
-      acc[i.medicineId] ??= { name: i.name, qty: 0, amt: 0 };
-      acc[i.medicineId].qty += i.qty;
-      acc[i.medicineId].amt += i.qty * i.price;
+      const o = (acc[i.medicineId] ??= { name: i.name, qty: 0, amt: 0 });
+      o.qty += i.qty;
+      o.amt += i.qty * i.price;
       return acc;
     }, {}),
   ).sort((a, b) => b.amt - a.amt).slice(0, 5);

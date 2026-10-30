@@ -184,7 +184,7 @@ export const actions = {
     return id;
   },
   removeCustomer: (id: string) => patch({ customers: cur().customers.filter((c) => c.id !== id) }),
-  saveMedicine: (m: Omit<Medicine, "id"> & { id?: string }) => {
+  saveMedicine: (m: Omit<Medicine, "id"> & { id?: string | undefined }) => {
     const s = cur();
     if (m.id) patch({ medicines: s.medicines.map((x) => (x.id === m.id ? ({ ...m, id: m.id } as Medicine) : x)) });
     else patch({ medicines: [...s.medicines, { ...m, id: uid() }] });
@@ -246,7 +246,7 @@ export const actions = {
       medicines: s.medicines.map((m) => {
         const its = p.items.filter((i) => i.medicineId === m.id);
         if (!its.length) return m;
-        const last = its[its.length - 1];
+        const last = its[its.length - 1]!;
         return { ...m, stock: m.stock + its.reduce((a, i) => a + i.qty, 0), costPrice: last.cost, expiry: last.expiry || m.expiry };
       }),
     });
