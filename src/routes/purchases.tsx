@@ -44,7 +44,7 @@ function Purchases() {
           <Field label="পরিমাণ"><Input type="number" min={1} value={row.qty} onChange={(e) => setRow({ ...row, qty: Number(e.target.value) })} /></Field>
           <Field label="প্রতি পিস দাম"><Input type="number" step="0.01" min={0} value={row.cost} onChange={(e) => setRow({ ...row, cost: Number(e.target.value) })} /></Field>
           <Field label="মেয়াদ"><Input type="date" value={row.expiry} onChange={(e) => setRow({ ...row, expiry: e.target.value })} /></Field>
-          <Button onClick={() => { if (!row.medicineId || row.qty <= 0) return toast.error("ওষুধ ও পরিমাণ দিন"); setItems([...items, row]); setRow({ ...row, medicineId: "", qty: 10 }); }}><Plus className="h-4 w-4" /> যোগ</Button>
+          <Button onClick={() => { if (!row.medicineId || row.qty <= 0) return void toast.error("ওষুধ ও পরিমাণ দিন"); setItems([...items, row]); setRow({ ...row, medicineId: "", qty: 10 }); }}><Plus className="h-4 w-4" /> যোগ</Button>
         </div>
         {items.length > 0 && (
           <ul className="mt-4 divide-y divide-border text-sm">
@@ -61,7 +61,7 @@ function Purchases() {
           <span className="text-sm">মোট <b className="font-display text-xl">{taka(total)}</b> · বাকি <b className="text-destructive">{taka(Math.max(0, total - paid))}</b></span>
           <Button size="lg" disabled={!items.length} onClick={() => {
             const err = actions.addPurchase({ supplierId: sid, items, paid, date: today(), note });
-            if (err) return toast.error(err);
+            if (err) return void toast.error(err);
             toast.success("চালান সেভ হলো, স্টক আপডেট হয়েছে");
             setItems([]); setPaid(0); setNote("");
           }}>চালান সেভ করুন</Button>

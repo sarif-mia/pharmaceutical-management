@@ -29,15 +29,15 @@ function Reports() {
 
   const daily: Record<string, { day: string; বিক্রি: number; লাভ: number }> = {};
   for (const s of S) {
-    daily[s.date] ??= { day: s.date.slice(5), বিক্রি: 0, লাভ: 0 };
-    daily[s.date].বিক্রি += s.total;
-    daily[s.date].লাভ += saleProfit(s);
+    const d = (daily[s.date] ??= { day: s.date.slice(5), বিক্রি: 0, লাভ: 0 });
+    d.বিক্রি += s.total;
+    d.লাভ += saleProfit(s);
   }
   const chart = Object.entries(daily).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
 
   const top = Object.values(S.flatMap((s) => s.items).reduce<Record<string, { name: string; qty: number; amt: number; profit: number }>>((acc, i) => {
-    acc[i.medicineId] ??= { name: i.name, qty: 0, amt: 0, profit: 0 };
-    acc[i.medicineId].qty += i.qty; acc[i.medicineId].amt += i.qty * i.price; acc[i.medicineId].profit += i.qty * (i.price - i.cost);
+    const o = (acc[i.medicineId] ??= { name: i.name, qty: 0, amt: 0, profit: 0 });
+    o.qty += i.qty; o.amt += i.qty * i.price; o.profit += i.qty * (i.price - i.cost);
     return acc;
   }, {})).sort((a, b) => b.amt - a.amt).slice(0, 10);
 

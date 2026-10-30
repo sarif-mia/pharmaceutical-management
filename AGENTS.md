@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Pharmacy data lives in src/lib/pharmacy-store.ts (browser localStorage store) — why: rebuilt from an uploaded Laravel app without a backend yet; swap to Lovable Cloud when login/multi-device is needed.
+- Sales are multi-item invoices; stock/due changes only through actions in src/lib/pharmacy-store.ts — why: one place enforces stock, expiry and due rules (tested in src/test/pharmacy-store.test.tsx).
