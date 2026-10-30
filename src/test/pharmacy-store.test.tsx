@@ -31,3 +31,17 @@ describe("pharmacy rules", () => {
     expect(stock("m2")).toBe(a + 50);
   });
 });
+
+import { alternatives, packOf } from "@/lib/pharmacy-store";
+describe("strip & generic", () => {
+  beforeEach(() => actions.reset());
+  it("tablets default to 10 pieces per strip", () => {
+    expect(packOf(getState().medicines.find((m) => m.id === "m1")!)).toBe(10);
+  });
+  it("alternatives match same generic + strength only", () => {
+    const st = getState();
+    const napa = st.medicines.find((m) => m.id === "m1")!;
+    const alt = alternatives([...st.medicines, { ...napa, id: "z", name: "Ace" }], napa);
+    expect(alt.map((a) => a.id)).toEqual(["z"]);
+  });
+});
