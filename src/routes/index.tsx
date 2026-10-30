@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AlertTriangle, Banknote, PackageX, Pill, TrendingUp } from "lucide-react";
 import { PageTitle } from "@/components/AppShell";
 import { expiresSoon, isExpired, LOW_STOCK, taka, today, usePharmacy } from "@/lib/pharmacy-store";
@@ -31,6 +30,8 @@ function Dashboard() {
     return { day: d.slice(5), total: sales.filter((s) => s.date === d).reduce((a, s) => a + s.total, 0) };
   });
 
+  const max = Math.max(1, ...days.map((d) => d.total));
+
   const stats = [
     { label: "আজকের বিক্রি", value: taka(todayTotal), icon: Banknote, tone: "bg-primary text-primary-foreground" },
     { label: "মোট ওষুধ", value: medicines.length, icon: Pill, tone: "bg-secondary text-secondary-foreground" },
@@ -58,16 +59,14 @@ function Dashboard() {
           <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-semibold">
             <TrendingUp className="h-5 w-5 text-primary" /> গত ৭ দিনের বিক্রি
           </h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={days}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={12} />
-                <Tooltip formatter={(v: number) => taka(v)} cursor={{ fill: "var(--muted)" }} />
-                <Bar dataKey="total" fill="var(--chart-1)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex h-64 items-end gap-3">
+            {days.map((d) => (
+              <div key={d.day} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
+                <span className="text-xs font-semibold text-muted-foreground">{d.total ? taka(d.total) : ""}</span>
+                <div className="w-full rounded-t-lg bg-primary transition-all" style={{ height: `${(d.total / max) * 75 + 2}%` }} title={taka(d.total)} />
+                <span className="text-xs text-muted-foreground">{d.day}</span>
+              </div>
+            ))}
           </div>
         </section>
 
