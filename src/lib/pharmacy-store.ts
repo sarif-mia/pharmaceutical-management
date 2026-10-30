@@ -292,3 +292,7 @@ export function ledger(st: PharmacyState, kind: "customer" | "supplier", id: str
   let bal = 0;
   return raw.map((r) => ({ ...r, balance: (bal = r2(bal + r.debit - r.credit)) }));
 }
+export const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
+};
