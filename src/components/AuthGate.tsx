@@ -7,6 +7,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { startCloudSync } from "@/lib/cloud-sync";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Toaster } from "@/components/ui/sonner";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -53,6 +54,7 @@ function Login() {
   };
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+      <Toaster richColors position="top-right" />
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-lg">
         <div className="mb-5 flex items-center gap-2">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Pill className="h-5 w-5" /></span>

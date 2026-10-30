@@ -1,7 +1,7 @@
 import { Link, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Menu, X, Cross, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings,
+  LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Menu, X, Cross, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { loadFromStorage, usePharmacy } from "@/lib/pharmacy-store";
 import { Toaster } from "@/components/ui/sonner";
@@ -70,6 +70,10 @@ export function AppShell() {
             </div>
           ))}
         </nav>
+        <button
+          onClick={async () => { const { supabase } = await import("@/integrations/supabase/client"); await supabase.auth.signOut(); }}
+          className="mx-4 mb-4 mt-auto flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium hover:bg-sidebar-accent"
+        ><LogOut className="h-4 w-4" /> লগআউট</button>
       </aside>
       {open && <div className="fixed inset-0 z-30 bg-foreground/40 md:hidden" onClick={() => setOpen(false)} />}
       <div className="flex min-w-0 flex-1 flex-col">
