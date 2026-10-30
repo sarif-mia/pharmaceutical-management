@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Pharmacy data lives in src/lib/pharmacy-store.ts (browser localStorage store) — why: rebuilt from an uploaded Laravel app without a backend yet; swap to Lovable Cloud when login/multi-device is needed.
