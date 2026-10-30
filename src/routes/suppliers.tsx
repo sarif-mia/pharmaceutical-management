@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageTitle, Panel } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LedgerButton } from "@/components/LedgerDialog";
 import { pageHead } from "@/lib/meta";
 import { actions, supplierDue, taka, usePharmacy } from "@/lib/pharmacy-store";
 
@@ -66,6 +67,7 @@ function Suppliers() {
                   <Button type="submit" variant="outline"><HandCoins className="h-4 w-4" /> পরিশোধ</Button>
                 </form>
               )}
+              <LedgerButton kind="supplier" id={s.id} name={s.company} />
             </div>
           );
         })}

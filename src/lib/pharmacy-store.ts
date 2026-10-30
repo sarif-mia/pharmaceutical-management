@@ -279,3 +279,16 @@ export function supplierDue(st: PharmacyState, id: string) {
   return r2(owed - paid);
 }
 export { today, daysFromNow };
+
+export type LedgerRow = { date: string; ref: string; debit: number; credit: number; balance: number };
+/** Debit = they owe more (sale due / purchase due), credit = payment. Oldest first, running balance. */
+export function ledger(st: PharmacyState, kind: "customer" | "supplier", id: string): LedgerRow[] {
+  const raw: Omit<LedgerRow, "balance">[] =
+    kind === "customer"
+      ? st.sales.filter((s) => s.customerId === id && s.due > 0).map((s) => ({ date: s.date, ref: `বিক্রি ${s.invoice} (মোট ${s.total})`, debit: s.due, credit: 0 }))
+      : st.purchases.filter((p) => p.supplierId === id && p.total - p.paid > 0).map((p) => ({ date: p.date, ref: `চালান ${p.note || ""} (মোট ${p.total})`.trim(), debit: r2(p.total - p.paid), credit: 0 }));
+  st.payments.filter((p) => p.kind === kind && p.partyId === id).forEach((p) => raw.push({ date: p.date, ref: "পরিশোধ", debit: 0, credit: p.amount }));
+  raw.sort((a, b) => a.date.localeCompare(b.date));
+  let bal = 0;
+  return raw.map((r) => ({ ...r, balance: (bal = r2(bal + r.debit - r.credit)) }));
+}

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageTitle, Panel } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LedgerButton } from "@/components/LedgerDialog";
 import { pageHead } from "@/lib/meta";
 import { actions, customerDue, taka, usePharmacy } from "@/lib/pharmacy-store";
 
@@ -66,6 +67,7 @@ function Customers() {
                   <Button type="submit" variant="outline"><HandCoins className="h-4 w-4" /> আদায়</Button>
                 </form>
               )}
+              <LedgerButton kind="customer" id={c.id} name={c.name} />
             </div>
           );
         })}
