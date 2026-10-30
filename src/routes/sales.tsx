@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Printer, Search, ShoppingCart, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Field, PageTitle, Panel, selectCls } from "@/components/AppShell";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
-import { actions, isExpired, PAYMENT_LABEL, taka, usePharmacy, type CartLine, type PaymentMethod, type Sale } from "@/lib/pharmacy-store";
+import { actions, alternatives, packOf, isExpired, PAYMENT_LABEL, taka, usePharmacy, type CartLine, type PaymentMethod, type Sale } from "@/lib/pharmacy-store";
 
 export const Route = createFileRoute("/sales")({
   head: pageHead("বিক্রি (POS)", "নাম, জেনেরিক বা বারকোড দিয়ে খুঁজে দ্রুত বিল করুন, রসিদ প্রিন্ট করুন।"),
@@ -40,12 +40,17 @@ function POS() {
   const change = paidNum > total ? paidNum - total : 0;
   const due = Math.max(0, total - paidNum);
 
-  const add = (id: string) => {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "F2") { e.preventDefault(); searchRef.current?.focus(); } };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
+  const add = (id: string, n = 1) => {
     const m = medicines.find((x) => x.id === id)!;
     if (isExpired(m)) return void toast.error(`${m.name} এর মেয়াদ শেষ`);
     const inCart = cart.find((c) => c.medicineId === id)?.qty ?? 0;
-    if (inCart + 1 > m.stock) return void toast.error(`স্টকে মাত্র ${m.stock}টি আছে`);
-    setCart((c) => (inCart ? c.map((x) => (x.medicineId === id ? { ...x, qty: x.qty + 1 } : x)) : [...c, { medicineId: id, qty: 1 }]));
+    if (inCart + n > m.stock) return void toast.error(`স্টকে মাত্র ${m.stock}টি আছে`);
+    setCart((c) => (inCart ? c.map((x) => (x.medicineId === id ? { ...x, qty: x.qty + n } : x)) : [...c, { medicineId: id, qty: n }]));
   };
   const setQty = (id: string, qty: number) => {
     const m = medicines.find((x) => x.id === id)!;
@@ -74,7 +79,7 @@ function POS() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && results[0]) { add(results[0].id); setQ(""); } }}
-              placeholder="নাম, জেনেরিক, কোম্পানি বা বারকোড… (Enter চাপলে প্রথমটি যোগ হবে)"
+              placeholder="নাম, জেনেরিক, কোম্পানি বা বারকোড… (F2 = সার্চ, Enter = প্রথমটি যোগ)"
               className="h-12 pl-10 text-base"
             />
           </div>
@@ -82,8 +87,8 @@ function POS() {
             {results.map((m) => {
               const bad = isExpired(m) || m.stock <= 0;
               return (
+                <div key={m.id} className="flex flex-col gap-1">
                 <button
-                  key={m.id}
                   disabled={bad}
                   onClick={() => { add(m.id); searchRef.current?.focus(); }}
                   className="group rounded-xl border border-border bg-background p-3 text-left transition hover:border-primary hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
@@ -100,6 +105,20 @@ function POS() {
                     <span className={m.stock < 20 ? "font-semibold text-destructive" : ""}>{isExpired(m) ? "মেয়াদ শেষ" : `স্টক ${m.stock}`}</span>
                   </div>
                 </button>
+                {!bad && packOf(m) > 1 && m.stock >= packOf(m) && (
+                  <button onClick={() => add(m.id, packOf(m))} className="rounded-lg border border-dashed border-primary/50 py-1 text-xs font-semibold text-primary hover:bg-primary/10">
+                    + ১ পাতা ({packOf(m)} পিস) · {taka(m.price * packOf(m))}
+                  </button>
+                )}
+                {bad && alternatives(medicines, m).length > 0 && (
+                  <div className="rounded-lg bg-accent/40 p-1.5 text-xs">
+                    <span className="text-muted-foreground">বিকল্প: </span>
+                    {alternatives(medicines, m).slice(0, 3).map((a) => (
+                      <button key={a.id} onClick={() => add(a.id)} className="mr-1 font-semibold text-primary underline">{a.name} ({taka(a.price)})</button>
+                    ))}
+                  </div>
+                )}
+                </div>
               );
             })}
           </div>
@@ -114,7 +133,7 @@ function POS() {
                 <li key={l.medicineId} className="flex items-center gap-2 rounded-lg bg-muted p-2 text-sm">
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{l.m.name} {l.m.strength}</div>
-                    <div className="text-xs text-muted-foreground">{taka(l.m.price)} × {l.qty} = <b>{taka(l.m.price * l.qty)}</b></div>
+                    <div className="text-xs text-muted-foreground">{packOf(l.m) > 1 && l.qty >= packOf(l.m) && <span className="mr-1 rounded bg-primary/10 px-1 text-primary">{Math.floor(l.qty / packOf(l.m))} পাতা{l.qty % packOf(l.m) ? ` + ${l.qty % packOf(l.m)} পিস` : ""}</span>}{taka(l.m.price)} × {l.qty} = <b>{taka(l.m.price * l.qty)}</b></div>
                   </div>
                   <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setQty(l.medicineId, l.qty - 1)}><Minus className="h-3 w-3" /></Button>
                   <Input className="h-7 w-14 px-1 text-center" value={l.qty} onChange={(e) => setQty(l.medicineId, Number(e.target.value))} />

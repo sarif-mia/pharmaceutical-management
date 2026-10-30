@@ -19,6 +19,7 @@ export type Medicine = {
   price: number;
   stock: number;
   reorder: number;
+  packSize?: number; // pieces per strip/box (1 = sold singly)
   expiry: string; // YYYY-MM-DD
 };
 export type Customer = { id: string; name: string; phone: string; address: string };
@@ -64,7 +65,7 @@ export const uid = () => Math.random().toString(36).slice(2, 10);
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function med(id: string, name: string, generic: string, form: DosageForm, strength: string, company: string, categoryId: string, supplierId: string, costPrice: number, price: number, stock: number, expiryDays: number, rack: string): Medicine {
-  return { id, name, generic, form, strength, company, categoryId, supplierId, costPrice, price, stock, reorder: 20, expiry: daysFromNow(expiryDays), rack, barcode: "89" + id.replace(/\D/g, "").padStart(6, "0") };
+  return { id, name, generic, form, strength, company, categoryId, supplierId, costPrice, price, stock, reorder: 20, packSize: form === "Tablet" || form === "Capsule" ? 10 : 1, expiry: daysFromNow(expiryDays), rack, barcode: "89" + id.replace(/\D/g, "").padStart(6, "0") };
 }
 
 function sale(id: string, inv: number, items: SaleItem[], day: number, method: PaymentMethod, paid?: number, customerId: string | null = null): Sale {
@@ -260,6 +261,10 @@ export const actions = {
 export const isExpired = (m: Medicine) => m.expiry < today();
 export const expiresSoon = (m: Medicine, days = 30) => !isExpired(m) && m.expiry <= daysFromNow(days);
 export const isLow = (m: Medicine, s: Settings) => m.stock <= Math.max(m.reorder, 0) || m.stock <= s.lowStock;
+export const packOf = (m: Medicine) => Math.max(1, Math.floor(m.packSize ?? 1));
+/** Same-generic, same-strength, sellable alternatives (different brands). */
+export const alternatives = (list: Medicine[], m: Medicine) =>
+  list.filter((x) => x.id !== m.id && x.generic.trim().toLowerCase() === m.generic.trim().toLowerCase() && x.strength === m.strength && !isExpired(x) && x.stock > 0);
 export const taka = (n: number) => `৳ ${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 export const saleProfit = (s: Sale) => r2(s.items.reduce((a, i) => a + i.qty * (i.price - i.cost), 0) - s.discount);
 

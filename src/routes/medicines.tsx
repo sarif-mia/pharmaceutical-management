@@ -117,7 +117,7 @@ function MedicineDialog({ med, onClose }: { med: Partial<Medicine>; onClose: () 
             actions.saveMedicine({
               id: med.id, name: g("name"), generic: g("generic"), form: g("form") as DosageForm, strength: g("strength"), company: g("company"),
               rack: g("rack"), barcode: g("barcode"), categoryId: g("categoryId"), supplierId: g("supplierId"),
-              costPrice, price, stock: Number(g("stock")), reorder: Number(g("reorder")) || 0, expiry: g("expiry"),
+              costPrice, price, stock: Number(g("stock")), reorder: Number(g("reorder")) || 0, packSize: Math.max(1, Number(g("packSize")) || 1), expiry: g("expiry"),
             });
             toast.success("সেভ হয়েছে");
             onClose();
@@ -135,6 +135,7 @@ function MedicineDialog({ med, onClose }: { med: Partial<Medicine>; onClose: () 
           <Field label="কেনা দাম (৳)"><Input name="costPrice" type="number" step="0.01" min="0" defaultValue={med.costPrice} required /></Field>
           <Field label="বিক্রয় মূল্য / MRP (৳)"><Input name="price" type="number" step="0.01" min="0" defaultValue={med.price} required /></Field>
           <Field label="স্টক"><Input name="stock" type="number" min="0" defaultValue={med.stock ?? 0} required /></Field>
+          <Field label="প্রতি পাতায় পিস"><Input name="packSize" type="number" min="1" defaultValue={med.packSize ?? 10} /></Field>
           <Field label="রি-অর্ডার লেভেল"><Input name="reorder" type="number" min="0" defaultValue={med.reorder ?? 20} /></Field>
           <Field label="মেয়াদ"><Input name="expiry" type="date" defaultValue={med.expiry} required /></Field>
           <div className="flex items-end"><Button type="submit" className="w-full">সংরক্ষণ করুন</Button></div>
