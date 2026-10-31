@@ -226,9 +226,26 @@ export const actions = {
       const m = s.medicines.find((x) => x.id === l.medicineId);
       if (!m) return "ওষুধ পাওয়া যায়নি";
       if (l.qty <= 0) return "পরিমাণ সঠিক নয়";
-      if (isExpired(m)) return `${m.name} এর মেয়াদ শেষ`;
-      if (m.stock < l.qty) return `${m.name} স্টকে মাত্র ${m.stock}টি আছে`;
+      const can = sellableStock(m);
+      if (can === 0 && m.stock > 0) return `${m.name} এর মেয়াদ শেষ`;
+      if (can < l.qty) return `${m.name} স্টকে মাত্র ${can}টি আছে`;
       items.push({ medicineId: m.id, name: `${m.name} ${m.strength}`.trim(), qty: l.qty, price: m.price, cost: m.costPrice });
+    }
+    // FEFO: take from the earliest-expiring non-expired batch first
+    const t = today();
+    const nextMeds = new Map<string, Medicine>();
+    for (const l of input.lines) {
+      const m = nextMeds.get(l.medicineId) ?? s.medicines.find((x) => x.id === l.medicineId)!;
+      let left = l.qty, costSum = 0;
+      const bs = getBatches(m).map((b) => ({ ...b })).sort((a, b) => a.expiry.localeCompare(b.expiry));
+      for (const b of bs) {
+        if (left <= 0 || b.expiry < t) continue;
+        const take = Math.min(b.qty, left);
+        b.qty -= take; left -= take; costSum += take * b.cost;
+      }
+      const item = items.find((i) => i.medicineId === m.id && i.qty === l.qty);
+      if (item) item.cost = r2(costSum / l.qty);
+      nextMeds.set(m.id, withBatches(m, bs));
     }
     const subtotal = r2(items.reduce((a, i) => a + i.qty * i.price, 0));
     const discount = Math.min(Math.max(0, input.discount), subtotal);
@@ -248,8 +265,7 @@ export const actions = {
     };
     patch({
       medicines: s.medicines.map((m) => {
-        const l = input.lines.find((x) => x.medicineId === m.id);
-        return l ? { ...m, stock: m.stock - l.qty } : m;
+        return nextMeds.get(m.id) ?? m;
       }),
       sales: [sale, ...s.sales],
     });
