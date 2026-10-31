@@ -179,6 +179,30 @@
   --sidebar-accent-foreground: oklch(0.98 0.01 95);
   --sidebar-border: oklch(0.34 0.04 165);
 }
+html.dark {
+  --background: oklch(0.17 0.015 165);
+  --foreground: oklch(0.93 0.01 120);
+  --card: oklch(0.21 0.018 165);
+  --card-foreground: oklch(0.93 0.01 120);
+  --popover: oklch(0.21 0.018 165);
+  --popover-foreground: oklch(0.93 0.01 120);
+  --primary: oklch(0.7 0.11 165);
+  --primary-foreground: oklch(0.16 0.03 165);
+  --secondary: oklch(0.28 0.03 160);
+  --secondary-foreground: oklch(0.9 0.02 140);
+  --muted: oklch(0.25 0.015 165);
+  --muted-foreground: oklch(0.68 0.02 150);
+  --accent: oklch(0.78 0.13 75);
+  --accent-foreground: oklch(0.2 0.04 60);
+  --destructive: oklch(0.62 0.19 27);
+  --border: oklch(0.31 0.02 165);
+  --input: oklch(0.31 0.02 165);
+  --ring: oklch(0.7 0.11 165);
+  --sidebar: oklch(0.14 0.02 165);
+  --sidebar-accent: oklch(0.24 0.03 165);
+  --sidebar-border: oklch(0.26 0.03 165);
+}
+.counter-mode aside { display: none !important; }
 @theme inline {
   --color-warning: var(--warning);
   --font-display: "Fraunces", Georgia, serif;
