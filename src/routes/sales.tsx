@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Minus, Plus, Printer, Search, ShoppingCart, Trash2, UserPlus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Minus, Plus, Printer, ScanLine, Search, ShoppingCart, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Field, PageTitle, Panel, selectCls } from "@/components/shared/page-ui";
 import { Receipt } from "@/components/Receipt";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
