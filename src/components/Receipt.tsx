@@ -30,7 +30,7 @@ export function Receipt({ sale }: { sale: Sale }) {
       <Row a="সাবটোটাল" b={taka(sale.subtotal)} />
       {sale.discount > 0 && <Row a="ছাড়" b={`- ${taka(sale.discount)}`} />}
       <Row a="মোট" b={taka(sale.total)} bold />
-      <Row a={`পরিশোধ (${PAYMENT_LABEL[sale.method]})`} b={taka(sale.paid)} />
+      {sale.cashPart ? <><Row a="পরিশোধ (ক্যাশ)" b={taka(sale.cashPart)} /><Row a={`পরিশোধ (${PAYMENT_LABEL[sale.method]})`} b={taka(sale.paid - sale.cashPart)} /></> : <Row a={`পরিশোধ (${PAYMENT_LABEL[sale.method]})`} b={taka(sale.paid)} />}
       {sale.trxId && <Row a="TrxID" b={sale.trxId} />}
       {sale.due > 0 && <Row a="বাকি" b={taka(sale.due)} bold />}
       <div className="my-2 border-t border-dashed border-foreground/40" />

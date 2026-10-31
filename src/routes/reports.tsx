@@ -27,7 +27,7 @@ function Reports() {
   const expiredLoss = medicines.filter(isExpired).reduce((a, m) => a + m.stock * m.costPrice, 0);
   const wasted = adjustmentLoss(st, from, to);
 
-  const byMethod = (Object.keys(PAYMENT_LABEL) as PaymentMethod[]).map((k) => ({ k, v: S.filter((s) => s.method === k).reduce((a, s) => a + s.paid, 0) }));
+  const byMethod = (Object.keys(PAYMENT_LABEL) as PaymentMethod[]).map((k) => ({ k, v: S.reduce((a, s) => a + (paidBy(s)[k] ?? 0), 0) }));
   const dueAdded = S.reduce((a, s) => a + s.due, 0);
 
   const daily: Record<string, { day: string; বিক্রি: number; লাভ: number }> = {};
