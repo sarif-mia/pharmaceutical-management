@@ -164,6 +164,6 @@ describe("shortage list", () => {
     expect(g).toHaveLength(1);
     expect(g[0]!.company).toBe("Square");
     expect(g[0]!.items.map((i) => i.m.id)).toEqual(["a"]);
-    expect(g[0]!.items[0].suggest).toBe(40); // target 40 - 5 = 35 → 4 strips of 10
+    expect(g[0]!.items[0]!.suggest).toBe(40); // target 40 - 5 = 35 → 4 strips of 10
   });
 });
