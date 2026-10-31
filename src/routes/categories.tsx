@@ -4,16 +4,10 @@ import { PageTitle } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, usePharmacy } from "@/lib/pharmacy-store";
+import { pageHead } from "@/lib/meta";
 
 export const Route = createFileRoute("/categories")({
-  head: () => ({
-    meta: [
-      { title: "ক্যাটাগরি — শেফা ফার্মেসি" },
-      { name: "description", content: "ওষুধের ক্যাটাগরি সাজান।" },
-      { property: "og:title", content: "ক্যাটাগরি — শেফা ফার্মেসি" },
-      { property: "og:description", content: "ওষুধের ক্যাটাগরি সাজান।" },
-    ],
-  }),
+  head: pageHead("ক্যাটাগরি", "ওষুধের ক্যাটাগরি সাজান।"),
   component: Categories,
 });
 
