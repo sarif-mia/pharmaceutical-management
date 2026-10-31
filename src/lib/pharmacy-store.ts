@@ -60,7 +60,10 @@ export type Sale = {
 };
 export type PurchaseItem = { medicineId: string; qty: number; cost: number; expiry: string; batchNo?: string };
 export type Purchase = { id: string; supplierId: string; items: PurchaseItem[]; total: number; paid: number; date: string; note: string };
-export type Payment = { id: string; kind: "customer" | "supplier"; partyId: string; amount: number; date: string };
+export type Payment = { id: string; kind: "customer" | "supplier"; partyId: string; amount: number; date: string; note?: string };
+export type AdjustReason = "damage" | "expired" | "lost" | "supplier";
+export const ADJUST_LABEL: Record<AdjustReason, string> = { damage: "নষ্ট/ভাঙা", expired: "মেয়াদোত্তীর্ণ ফেলে দেওয়া", lost: "হারানো/গরমিল", supplier: "সাপ্লায়ারকে ফেরত" };
+export type Adjustment = { id: string; medicineId: string; name: string; batchNo: string; qty: number; cost: number; reason: AdjustReason; supplierId?: string; note: string; date: string };
 export type Expense = { id: string; title: string; type: string; amount: number; date: string };
 export type Settings = { shopName: string; address: string; phone: string; license: string; lowStock: number; expiryDays: number; receiptWidth?: "58" | "80" };
 
@@ -73,6 +76,7 @@ export type PharmacyState = {
   purchases: Purchase[];
   payments: Payment[];
   expenses: Expense[];
+  adjustments?: Adjustment[];
   settings: Settings;
 };
 
@@ -329,6 +333,25 @@ export const actions = {
     void amount;
     return { refund };
   },
+  /** Remove pieces from one batch (damage/expired/lost/supplier return). Supplier return credits the supplier's due. */
+  adjustStock: (a: { medicineId: string; batchId: string; qty: number; reason: AdjustReason; supplierId?: string; note?: string }): string | null => {
+    const s = cur();
+    const m = s.medicines.find((x) => x.id === a.medicineId);
+    if (!m) return "ওষুধ পাওয়া যায়নি";
+    const bs = getBatches(m).map((b) => ({ ...b }));
+    const b = bs.find((x) => x.id === a.batchId);
+    if (!b) return "ব্যাচ পাওয়া যায়নি";
+    if (!(a.qty > 0) || a.qty > b.qty) return `এই ব্যাচে মাত্র ${b.qty} পিস আছে`;
+    if (a.reason === "supplier" && !a.supplierId) return "সাপ্লায়ার বেছে নিন";
+    b.qty -= a.qty;
+    const adj: Adjustment = { id: uid(), medicineId: m.id, name: `${m.name} ${m.strength}`.trim(), batchNo: b.no, qty: a.qty, cost: b.cost, reason: a.reason, note: a.note?.trim() ?? "", date: today(), ...(a.supplierId ? { supplierId: a.supplierId } : {}) };
+    patch({
+      medicines: s.medicines.map((x) => (x.id === m.id ? withBatches(m, bs) : x)),
+      adjustments: [adj, ...(s.adjustments ?? [])],
+      ...(a.reason === "supplier" && a.supplierId ? { payments: [{ id: uid(), kind: "supplier" as const, partyId: a.supplierId, amount: r2(a.qty * b.cost), date: today(), note: `ফেরত ${adj.name} ×${a.qty}` }, ...s.payments] } : {}),
+    });
+    return null;
+  },
   importData: (data: PharmacyState) => set({ ...getSeed(), ...data }),
   reset: () => set(makeSeed()),
 };
@@ -362,7 +385,7 @@ export function ledger(st: PharmacyState, kind: "customer" | "supplier", id: str
     kind === "customer"
       ? st.sales.filter((s) => s.customerId === id && s.due > 0).map((s) => ({ date: s.date, ref: `বিক্রি ${s.invoice} (মোট ${s.total})`, debit: s.due, credit: 0 }))
       : st.purchases.filter((p) => p.supplierId === id && p.total - p.paid > 0).map((p) => ({ date: p.date, ref: `চালান ${p.note || ""} (মোট ${p.total})`.trim(), debit: r2(p.total - p.paid), credit: 0 }));
-  st.payments.filter((p) => p.kind === kind && p.partyId === id).forEach((p) => raw.push({ date: p.date, ref: "পরিশোধ", debit: 0, credit: p.amount }));
+  st.payments.filter((p) => p.kind === kind && p.partyId === id).forEach((p) => raw.push({ date: p.date, ref: p.note || "পরিশোধ", debit: 0, credit: p.amount }));
   raw.sort((a, b) => a.date.localeCompare(b.date));
   let bal = 0;
   return raw.map((r) => ({ ...r, balance: (bal = r2(bal + r.debit - r.credit)) }));
@@ -373,6 +396,7 @@ export const subscribe = (l: () => void) => {
 };
 
 /** Day-end (Z) report. Customer due collections are counted as cash. */
+export const adjustmentLoss = (st: PharmacyState, from: string, to: string) => r2((st.adjustments ?? []).filter((a) => a.reason !== "supplier" && a.date >= from && a.date <= to).reduce((x, a) => x + a.qty * a.cost, 0));
 export function dayClosing(st: PharmacyState, date: string) {
   const sales = st.sales.filter((s) => s.date === date);
   const byMethod: Record<PaymentMethod, number> = { cash: 0, bkash: 0, nagad: 0, card: 0 };
