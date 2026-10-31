@@ -8,6 +8,13 @@
       "when": 1793389076878,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793423491590,
+      "tag": "0001_shop_staff_roles",
+      "breakpoints": true
     }
   ]
 }
