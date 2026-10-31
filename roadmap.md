@@ -18,4 +18,4 @@
 - [x] Purchases mobile cards, POS quick cash buttons, alert bell, printable reports
 - [x] ঘাটতি খাতা + WhatsApp বাকি তাগাদা (Phase 1)
 - [x] Phase 2: রসিদে সেবনবিধি + QR
-- [ ] Phase 3: স্প্লিট পেমেন্ট (ক্যাশ + বিকাশ)
+- [x] Phase 3: স্প্লিট পেমেন্ট (ক্যাশ + বিকাশ)

@@ -24,6 +24,7 @@ function POS() {
   const [discInput, setDiscInput] = useState(0);
   const [pct, setPct] = useState(false);
   const [trxId, setTrxId] = useState("");
+  const [cashPart, setCashPart] = useState("");
   const [paid, setPaid] = useState<string>("");
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [customerId, setCustomerId] = useState("");
@@ -76,11 +77,11 @@ function POS() {
   }, [medicines]);
 
   const checkout = () => {
-    const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null, ...(method !== "cash" && trxId ? { trxId } : {}) });
+    const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null, ...(method !== "cash" && trxId ? { trxId } : {}), ...(method !== "cash" && Number(cashPart) > 0 ? { cashPart: Number(cashPart) } : {}) });
     if (typeof r === "string") return void toast.error(r);
     toast.success(`বিক্রি সম্পন্ন — ${taka(r.total)}`);
     setDone(r);
-    setCartOpen(false); setCart([]); setDiscInput(0); setPct(false); setTrxId(""); setPaid(""); setCustomerId(""); setMethod("cash"); setQ("");
+    setCartOpen(false); setCart([]); setDiscInput(0); setPct(false); setTrxId(""); setCashPart(""); setPaid(""); setCustomerId(""); setMethod("cash"); setQ("");
   };
 
   return (
@@ -182,6 +183,7 @@ function POS() {
               ))}
             </div>
             {method !== "cash" && <Field label={`${PAYMENT_LABEL[method]} TrxID / রেফারেন্স`}><Input value={trxId} onChange={(e) => setTrxId(e.target.value)} placeholder="যেমন 9A7B3XK2" /></Field>}
+            {method !== "cash" && <Field label={`এর মধ্যে ক্যাশে নেওয়া (৳) — বাকিটা ${PAYMENT_LABEL[method]}`}><Input type="number" min={0} value={cashPart} onChange={(e) => setCashPart(e.target.value)} placeholder="০ — পুরোটা একভাবে" />{Number(cashPart) > 0 && <div className="mt-1 text-xs text-muted-foreground">ক্যাশ {taka(Math.min(Number(cashPart), Math.min(paidNum, total)))} + {PAYMENT_LABEL[method]} {taka(Math.max(0, Math.min(paidNum, total) - Number(cashPart)))}</div>}</Field>}
             <div className="grid grid-cols-2 gap-3">
               <Field label={`ছাড় (${pct ? "%" : "৳"})`}><div className="flex gap-1"><Input type="number" min={0} value={discInput || ""} onChange={(e) => setDiscInput(Number(e.target.value) || 0)} /><Button type="button" variant="outline" size="icon" aria-label="ছাড়ের ধরন বদলান" onClick={() => setPct((v) => !v)}>{pct ? "%" : "৳"}</Button></div></Field>
               <Field label="পরিশোধ (৳)"><Input type="number" min={0} placeholder={total.toFixed(2)} value={paid} onChange={(e) => setPaid(e.target.value)} /></Field>

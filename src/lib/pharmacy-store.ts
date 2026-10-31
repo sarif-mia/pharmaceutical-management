@@ -54,6 +54,7 @@ export type Sale = {
   due: number;
   method: PaymentMethod;
   trxId?: string;
+  cashPart?: number; // split bill: part of `paid` received in cash, rest via `method`
   customerId: string | null;
   date: string;
   time: string;
@@ -195,7 +196,7 @@ export const getState = cur;
 
 export type CartLine = { medicineId: string; qty: number; dose?: string };
 export const DOSE_PRESETS = ["১+০+১ (খাবার পর)", "১+১+১ (খাবার পর)", "১+০+০ (সকালে)", "০+০+১ (রাতে)", "১+০+১ (খাবার আগে)", "১ চামচ ৩ বার", "প্রয়োজনে"];
-export type CheckoutInput = { lines: CartLine[]; discount: number; paid: number; method: PaymentMethod; customerId: string | null; trxId?: string };
+export type CheckoutInput = { lines: CartLine[]; discount: number; paid: number; method: PaymentMethod; customerId: string | null; trxId?: string; cashPart?: number };
 
 export const actions = {
   addCategory: (name: string) => patch({ categories: [...cur().categories, { id: uid(), name }] }),
@@ -266,6 +267,7 @@ export const actions = {
       items, subtotal, discount, total, paid, due,
       method: input.method,
       ...(input.trxId?.trim() ? { trxId: input.trxId.trim() } : {}),
+      ...(input.method !== "cash" && (input.cashPart ?? 0) > 0 ? { cashPart: r2(Math.min(input.cashPart!, paid)) } : {}),
       customerId: input.customerId,
       date: today(),
       time: now.toTimeString().slice(0, 5),
@@ -401,7 +403,7 @@ export const adjustmentLoss = (st: PharmacyState, from: string, to: string) => r
 export function dayClosing(st: PharmacyState, date: string) {
   const sales = st.sales.filter((s) => s.date === date);
   const byMethod: Record<PaymentMethod, number> = { cash: 0, bkash: 0, nagad: 0, card: 0 };
-  for (const s of sales) byMethod[s.method] = r2(byMethod[s.method] + s.paid);
+  for (const s of sales) for (const [k, v] of Object.entries(paidBy(s)) as [PaymentMethod, number][]) byMethod[k] = r2(byMethod[k] + v);
   const collected = r2(st.payments.filter((p) => p.kind === "customer" && p.date === date).reduce((a, p) => a + p.amount, 0));
   const expense = r2(st.expenses.filter((e) => e.date === date).reduce((a, e) => a + e.amount, 0));
   return {
@@ -426,4 +428,13 @@ export function shortageList(st: PharmacyState) {
     groups.set(key, [...(groups.get(key) ?? []), { m, suggest }]);
   }
   return [...groups.entries()].map(([company, items]) => ({ company, items })).sort((a, b) => a.company.localeCompare(b.company));
+}
+
+/** How a sale's paid amount splits across payment methods (split bills: cash + bKash etc.). */
+export function paidBy(s: Sale): Partial<Record<PaymentMethod, number>> {
+  const cash = s.method === "cash" ? s.paid : Math.min(s.cashPart ?? 0, s.paid);
+  const out: Partial<Record<PaymentMethod, number>> = {};
+  if (cash > 0) out.cash = r2(cash);
+  if (s.method !== "cash" && s.paid - cash > 0) out[s.method] = r2(s.paid - cash);
+  return out;
 }
