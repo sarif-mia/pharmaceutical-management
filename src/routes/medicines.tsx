@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Download, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Field, PageTitle, selectCls, tdCls, thCls } from "@/components/AppShell";
+import { Field, PageTitle, selectCls, tdCls, thCls } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -49,22 +49,32 @@ function Medicines() {
         subtitle={`মোট ${medicines.length}টি ওষুধ · স্টকের মূল্য ${taka(stockValue)}`}
         action={<div className="flex gap-2"><Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4" /> CSV</Button><Button onClick={() => setEdit({})}><Plus className="h-4 w-4" /> নতুন ওষুধ</Button></div>}
       />
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative min-w-60 flex-1">
+      <div className="mb-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="relative min-w-0 sm:flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" placeholder="নাম, জেনেরিক, কোম্পানি, র‍্যাক বা বারকোড…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <select className={`${selectCls} w-44`} value={cat} onChange={(e) => setCat(e.target.value)}>
+        <select className={`${selectCls} sm:w-44`} value={cat} onChange={(e) => setCat(e.target.value)}>
           <option value="">সব ক্যাটাগরি</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <div className="flex rounded-lg border border-border bg-card p-1">
+        <div className="flex min-w-0 overflow-x-auto rounded-lg border border-border bg-card p-1">
           {tabs.map(([k, l]) => (
-            <button key={k} onClick={() => setFilter(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${filter === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{l}</button>
+            <Button key={k} size="sm" variant={filter === k ? "default" : "ghost"} onClick={() => setFilter(k)} className="h-9 shrink-0 px-2 text-xs">{l}</Button>
           ))}
         </div>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="divide-y divide-border border-y border-border bg-card sm:hidden">
+        {list.map((m) => <article key={m.id} className="py-3">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+            <div className="min-w-0"><h2 className="text-sm font-semibold">{m.name} <span className="font-normal text-muted-foreground">{m.strength}</span></h2><p className="mt-0.5 text-xs text-muted-foreground">{m.generic} · {m.form}</p><p className="mt-1 text-xs text-muted-foreground">{m.company} · র‍্যাক {m.rack || "—"}</p></div>
+            <div className="text-right"><p className="text-sm font-bold text-primary">{taka(m.price)}</p><p className={`mt-1 text-xs ${isLow(m, settings) ? "text-destructive" : "text-muted-foreground"}`}>স্টক {m.stock} পিস</p></div>
+          </div>
+          <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"><div className="min-w-0 text-xs"><span className={isExpired(m) ? "text-destructive" : "text-muted-foreground"}>মেয়াদ {m.expiry}</span>{getBatches(m).length > 1 && <span className="ml-2 text-muted-foreground">{getBatches(m).length} ব্যাচ</span>}</div><div className="flex shrink-0 gap-1"><Button size="icon" variant="ghost" aria-label={`${m.name} এডিট`} onClick={() => setEdit(m)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" aria-label={`${m.name} মুছুন`} onClick={() => { if (confirm(`${m.name} মুছে ফেলবেন?`)) actions.removeMedicine(m.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button></div></div>
+        </article>)}
+        {!list.length && <p className="py-8 text-center text-sm text-muted-foreground">কিছু পাওয়া যায়নি</p>}
+      </div>
+      <div className="hidden overflow-x-auto rounded-lg border border-border bg-card sm:block">
         <table className="w-full text-sm">
           <thead className="bg-muted text-muted-foreground">
             <tr><th className={thCls}>ওষুধ</th><th className={thCls}>কোম্পানি</th><th className={thCls}>ক্যাটাগরি</th><th className={thCls}>র‍্যাক</th><th className={thCls}>কেনা / MRP</th><th className={thCls}>স্টক</th><th className={thCls}>মেয়াদ</th><th className={`${thCls} text-right`}>কাজ</th></tr>
@@ -95,7 +105,6 @@ function Medicines() {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">নতুন স্টক যোগ করতে “ক্রয় / চালান” পাতা ব্যবহার করুন।</p>
       {edit && <MedicineDialog med={edit} onClose={() => setEdit(null)} />}
     </>
   );

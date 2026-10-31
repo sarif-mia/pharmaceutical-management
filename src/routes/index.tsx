@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, Banknote, HandCoins, PackageX, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
+import { AlertTriangle, Banknote, HandCoins, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { PageTitle, Panel, Stat } from "@/components/AppShell";
+import { PageTitle, Panel, Stat } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/meta";
 import { customerDue, daysFromNow, expiresSoon, isExpired, isLow, saleProfit, taka, today, usePharmacy } from "@/lib/pharmacy-store";
@@ -41,20 +41,20 @@ function Dashboard() {
   return (
     <>
       <PageTitle
-        title="আসসালামু আলাইকুম"
-        subtitle={`${settings.shopName} — আজকের অবস্থা এক নজরে`}
-        action={<Button asChild size="lg"><Link to="/sales"><ShoppingCart className="h-4 w-4" /> নতুন বিক্রি</Link></Button>}
+        title="ড্যাশবোর্ড"
+        subtitle={`${settings.shopName} · ${t}`}
+        action={<Button asChild size="default"><Link to="/sales"><ShoppingCart className="h-4 w-4" /> নতুন বিক্রি</Link></Button>}
       />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={`আজকের বিক্রি (${todaySales.length}টি)`} value={taka(todayTotal)} icon={Banknote} tone="bg-primary text-primary-foreground" />
         <Stat label="আজকের লাভ (খরচ বাদে)" value={taka(todayProfit - todayExp)} icon={TrendingUp} tone="bg-accent text-accent-foreground" />
         <Stat label="কাস্টমারের মোট বাকি" value={taka(totalDue)} icon={HandCoins} />
         <Stat label="আজকের খরচ" value={taka(todayExp)} icon={Wallet} />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-5">
+      <div className="mt-5 grid gap-4 lg:grid-cols-5">
         <Panel className="lg:col-span-3" title={<><TrendingUp className="h-5 w-5 text-primary" /> গত ১৪ দিনের বিক্রি</>}>
-          <div className="h-64">
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={days} margin={{ left: -10, right: 8 }}>
                 <defs>
@@ -66,7 +66,7 @@ function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
-                <Tooltip formatter={(v: number) => taka(v)} contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)" }} />
+                <Tooltip formatter={(v: number) => taka(v)} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)" }} />
                 <Area type="monotone" dataKey="total" name="বিক্রি" stroke="var(--primary)" strokeWidth={2.5} fill="url(#g)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -83,8 +83,8 @@ function Dashboard() {
             {[...expired.map((m) => ({ m, t: "মেয়াদ শেষ", c: "bg-destructive/10 text-destructive" })),
               ...soon.map((m) => ({ m, t: `মেয়াদ ${m.expiry}`, c: "bg-accent/30 text-accent-foreground" })),
               ...low.map((m) => ({ m, t: `স্টক ${m.stock}`, c: "bg-secondary text-secondary-foreground" }))].map(({ m, t, c }, i) => (
-              <li key={i} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2">
-                <span className="font-medium">{m.name} <span className="text-xs text-muted-foreground">{m.strength}</span></span>
+              <li key={i} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border py-2">
+                <span className="min-w-0 break-words font-medium">{m.name} <span className="text-xs text-muted-foreground">{m.strength}</span></span>
                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c}`}>{t}</span>
               </li>
             ))}
@@ -94,13 +94,13 @@ function Dashboard() {
         </Panel>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <Panel title="সবচেয়ে বেশি বিক্রি">
           <ul className="space-y-3 text-sm">
             {top.map((x, i) => (
               <li key={x.name} className="flex items-center gap-3">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
-                <span className="flex-1 font-medium">{x.name}</span>
+                <span className="min-w-0 flex-1 break-words font-medium">{x.name}</span>
                 <span className="text-muted-foreground">{x.qty}টি</span>
                 <span className="w-24 text-right font-semibold">{taka(x.amt)}</span>
               </li>

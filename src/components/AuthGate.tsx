@@ -8,6 +8,7 @@ import { startCloudSync } from "@/lib/cloud-sync";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
+import { AppSkeleton } from "@/components/shared/AppSkeleton";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -28,7 +29,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => stop?.();
   }, [user?.id]);
 
-  if (user === undefined || (user && !ready)) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">লোড হচ্ছে…</div>;
+  if (user === undefined || (user && !ready)) return <AppSkeleton />;
   if (!user) return <Login />;
   return <>{children}</>;
 }
@@ -55,7 +56,7 @@ function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Toaster richColors position="top-right" />
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-lg">
+      <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-lg">
         <div className="mb-5 flex items-center gap-2">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Pill className="h-5 w-5" /></span>
           <div><div className="font-display text-xl font-semibold">ফার্মেসি ম্যানেজার</div><div className="text-xs text-muted-foreground">{mode === "in" ? "লগইন করুন" : "নতুন অ্যাকাউন্ট খুলুন"}</div></div>
@@ -66,9 +67,9 @@ function Login() {
           <Button className="w-full" disabled={busy}>{mode === "in" ? "লগইন" : "অ্যাকাউন্ট খুলুন"}</Button>
         </form>
         <Button variant="outline" className="mt-3 w-full" onClick={google}>Google দিয়ে চালিয়ে যান</Button>
-        <button className="mt-4 w-full text-center text-sm text-primary underline" onClick={() => setMode(mode === "in" ? "up" : "in")}>
+        <Button variant="link" className="mt-4 w-full text-center text-sm text-primary underline" onClick={() => setMode(mode === "in" ? "up" : "in")}>
           {mode === "in" ? "অ্যাকাউন্ট নেই? নতুন খুলুন" : "অ্যাকাউন্ট আছে? লগইন করুন"}
-        </button>
+        </Button>
       </div>
     </div>
   );
