@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Minus, Plus, Printer, Search, ShoppingCart, Trash2, UserPlus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Minus, Plus, Printer, ScanLine, Search, ShoppingCart, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Field, PageTitle, Panel, selectCls } from "@/components/shared/page-ui";
 import { Receipt } from "@/components/Receipt";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -60,6 +61,16 @@ function POS() {
     const v = Math.max(1, Math.min(m.stock, Math.floor(qty) || 1));
     setCart((c) => c.map((x) => (x.medicineId === id ? { ...x, qty: v } : x)));
   };
+  const [scan, setScan] = useState(false);
+  const addRef = useRef(add);
+  addRef.current = add;
+  const onScan = useCallback((code: string) => {
+    setScan(false);
+    const m = medicines.find((x) => x.barcode === code.trim());
+    if (!m) return void toast.error(`বারকোড ${code} এর ওষুধ পাওয়া যায়নি`);
+    addRef.current(m.id);
+    toast.success(`${m.name} কার্টে যোগ হলো`);
+  }, [medicines]);
 
   const checkout = () => {
     const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null });
@@ -83,9 +94,11 @@ function POS() {
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && results[0]) { add(results[0].id); setQ(""); } }}
               placeholder="নাম, জেনেরিক বা বারকোড…"
-              className="h-12 pl-10 text-base"
+              className="h-12 pl-10 pr-12 text-base"
             />
+            <Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2" aria-label="ক্যামেরায় স্ক্যান" onClick={() => setScan(true)}><ScanLine className="h-5 w-5" /></Button>
           </div>
+          <BarcodeScanner open={scan} onClose={() => setScan(false)} onCode={onScan} />
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {results.map((m) => {
               const bad = isExpired(m) || m.stock <= 0;

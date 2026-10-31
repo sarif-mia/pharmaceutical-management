@@ -8,4 +8,4 @@
 - [x] Compact mobile app navigation, dashboard, medicine list, and POS
 - [x] Skeleton loading and desktop/mobile verification
 - [x] Sales return, WhatsApp receipt, CSV export
-- [ ] Camera barcode scanner (next)
+- [x] Camera barcode scanner in POS
