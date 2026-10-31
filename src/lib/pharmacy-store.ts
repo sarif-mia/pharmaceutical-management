@@ -57,7 +57,7 @@ export type Sale = {
   date: string;
   time: string;
 };
-export type PurchaseItem = { medicineId: string; qty: number; cost: number; expiry: string };
+export type PurchaseItem = { medicineId: string; qty: number; cost: number; expiry: string; batchNo?: string };
 export type Purchase = { id: string; supplierId: string; items: PurchaseItem[]; total: number; paid: number; date: string; note: string };
 export type Payment = { id: string; kind: "customer" | "supplier"; partyId: string; amount: number; date: string };
 export type Expense = { id: string; title: string; type: string; amount: number; date: string };
