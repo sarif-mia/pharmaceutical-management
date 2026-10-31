@@ -157,13 +157,13 @@ describe("shortage list", () => {
     const st = seedS();
     st.settings.lowStock = 20;
     st.medicines = [
-      { ...st.medicines[0], id: "a", company: "Square", stock: 5, reorder: 10, packSize: 10, batches: undefined },
-      { ...st.medicines[0], id: "b", company: "Square", stock: 500, reorder: 10, batches: undefined },
+      { ...st.medicines[0]!, id: "a", company: "Square", stock: 5, reorder: 10, packSize: 10, batches: undefined },
+      { ...st.medicines[0]!, id: "b", company: "Square", stock: 500, reorder: 10, batches: undefined },
     ];
     const g = shortageList(st);
     expect(g).toHaveLength(1);
-    expect(g[0].company).toBe("Square");
-    expect(g[0].items.map((i) => i.m.id)).toEqual(["a"]);
-    expect(g[0].items[0].suggest).toBe(40); // target 40 - 5 = 35 → 4 strips of 10
+    expect(g[0]!.company).toBe("Square");
+    expect(g[0]!.items.map((i) => i.m.id)).toEqual(["a"]);
+    expect(g[0]!.items[0].suggest).toBe(40); // target 40 - 5 = 35 → 4 strips of 10
   });
 });
