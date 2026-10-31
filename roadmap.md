@@ -7,3 +7,5 @@
 - [x] Separate navigation, layout, and reusable page UI without changing pharmacy rules
 - [x] Compact mobile app navigation, dashboard, medicine list, and POS
 - [x] Skeleton loading and desktop/mobile verification
+- [x] Sales return, WhatsApp receipt, CSV export
+- [ ] Camera barcode scanner (next)

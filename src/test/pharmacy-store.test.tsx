@@ -25,6 +25,16 @@ describe("pharmacy rules", () => {
     actions.checkout({ lines: line, discount: 0, paid: 10, method: "cash", customerId: "u1" });
     expect(customerDue(getState(), "u1")).toBe(before + 30);
   });
+  it("return puts stock back, cuts due first, then refunds cash", () => {
+    const a = stock("m3");
+    const before = customerDue(getState(), "u1");
+    const sale = actions.checkout({ lines: [{ medicineId: "m3", qty: 1 }], discount: 0, paid: 10, method: "cash", customerId: "u1" });
+    if (typeof sale === "string") throw new Error(sale);
+    expect(actions.returnSale(sale.id, [{ medicineId: "m3", qty: 2 }])).toBe("বিক্রির চেয়ে বেশি ফেরত নেওয়া যাবে না");
+    expect(actions.returnSale(sale.id, [{ medicineId: "m3", qty: 1 }])).toEqual({ refund: 10 });
+    expect(stock("m3")).toBe(a);
+    expect(customerDue(getState(), "u1")).toBe(before);
+  });
   it("purchase adds stock", () => {
     const a = stock("m2");
     actions.addPurchase({ supplierId: "s1", items: [{ medicineId: "m2", qty: 50, cost: 4, expiry: "2030-01-01" }], paid: 0, date: "2026-01-01", note: "" });
