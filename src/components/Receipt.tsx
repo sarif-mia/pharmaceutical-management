@@ -1,3 +1,4 @@
+import { QRCodeSVG } from "qrcode.react";
 import { PAYMENT_LABEL, taka, usePharmacy, type Sale } from "@/lib/pharmacy-store";
 
 export function Receipt({ sale }: { sale: Sale }) {
@@ -19,7 +20,7 @@ export function Receipt({ sale }: { sale: Sale }) {
         <tbody>
           {sale.items.map((i, k) => (
             <tr key={k}>
-              <td className="py-0.5 pr-1">{i.name}<div className="opacity-70">{i.qty} × {i.price}</div></td>
+              <td className="py-0.5 pr-1">{i.name}<div className="opacity-70">{i.qty} × {i.price}</div>{i.dose && <div className="font-semibold">সেবন: {i.dose}</div>}</td>
               <td className="text-right align-top">{(i.qty * i.price).toFixed(2)}</td>
             </tr>
           ))}
@@ -33,6 +34,7 @@ export function Receipt({ sale }: { sale: Sale }) {
       {sale.trxId && <Row a="TrxID" b={sale.trxId} />}
       {sale.due > 0 && <Row a="বাকি" b={taka(sale.due)} bold />}
       <div className="my-2 border-t border-dashed border-foreground/40" />
+      <div className="my-2 flex justify-center"><QRCodeSVG value={`${settings.shopName}|${sale.invoice}|${sale.date} ${sale.time}|৳${sale.total}`} size={settings.receiptWidth === "58" ? 64 : 80} /></div>
       <div className="text-center">ধন্যবাদ, আবার আসবেন। সুস্থ থাকুন।</div>
     </div>
   );

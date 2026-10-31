@@ -42,7 +42,7 @@ function withBatches(m: Medicine, batches: Batch[]): Medicine {
 export type Customer = { id: string; name: string; phone: string; address: string };
 export type PaymentMethod = "cash" | "bkash" | "nagad" | "card";
 export const PAYMENT_LABEL: Record<PaymentMethod, string> = { cash: "ক্যাশ", bkash: "বিকাশ", nagad: "নগদ", card: "কার্ড" };
-export type SaleItem = { medicineId: string; name: string; qty: number; price: number; cost: number };
+export type SaleItem = { medicineId: string; name: string; qty: number; price: number; cost: number; dose?: string };
 export type Sale = {
   id: string;
   invoice: string;
@@ -193,7 +193,8 @@ export function usePharmacy() {
 }
 export const getState = cur;
 
-export type CartLine = { medicineId: string; qty: number };
+export type CartLine = { medicineId: string; qty: number; dose?: string };
+export const DOSE_PRESETS = ["১+০+১ (খাবার পর)", "১+১+১ (খাবার পর)", "১+০+০ (সকালে)", "০+০+১ (রাতে)", "১+০+১ (খাবার আগে)", "১ চামচ ৩ বার", "প্রয়োজনে"];
 export type CheckoutInput = { lines: CartLine[]; discount: number; paid: number; method: PaymentMethod; customerId: string | null; trxId?: string };
 
 export const actions = {
@@ -234,7 +235,7 @@ export const actions = {
       const can = sellableStock(m);
       if (can === 0 && m.stock > 0) return `${m.name} এর মেয়াদ শেষ`;
       if (can < l.qty) return `${m.name} স্টকে মাত্র ${can}টি আছে`;
-      items.push({ medicineId: m.id, name: `${m.name} ${m.strength}`.trim(), qty: l.qty, price: m.price, cost: m.costPrice });
+      items.push({ medicineId: m.id, name: `${m.name} ${m.strength}`.trim(), qty: l.qty, price: m.price, cost: m.costPrice, ...(l.dose?.trim() ? { dose: l.dose.trim() } : {}) });
     }
     // FEFO: take from the earliest-expiring non-expired batch first
     const t = today();

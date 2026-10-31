@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
-import { actions, alternatives, packOf, isExpired, PAYMENT_LABEL, taka, usePharmacy, type CartLine, type PaymentMethod, type Sale } from "@/lib/pharmacy-store";
+import { actions, alternatives, DOSE_PRESETS, packOf, isExpired, PAYMENT_LABEL, taka, usePharmacy, type CartLine, type PaymentMethod, type Sale } from "@/lib/pharmacy-store";
 
 export const Route = createFileRoute("/sales")({
   head: pageHead("বিক্রি (POS)", "নাম, জেনেরিক বা বারকোড দিয়ে খুঁজে দ্রুত বিল করুন, রসিদ প্রিন্ট করুন।"),
@@ -159,10 +159,12 @@ function POS() {
                   <Input className="h-7 w-14 px-1 text-center" value={l.qty} onChange={(e) => setQty(l.medicineId, Number(e.target.value))} />
                   <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setQty(l.medicineId, l.qty + 1)}><Plus className="h-3 w-3" /></Button>
                   <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => setCart((c) => c.filter((x) => x.medicineId !== l.medicineId))}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Input list="dose-presets" aria-label="সেবনবিধি" placeholder="সেবনবিধি (ঐচ্ছিক) যেমন ১+০+১" className="h-7 basis-full text-xs" value={l.dose ?? ""} onChange={(e) => setCart((c) => c.map((x) => (x.medicineId === l.medicineId ? { ...x, dose: e.target.value } : x)))} />
                 </li>
               ))}
             </ul>
           )}
+          <datalist id="dose-presets">{DOSE_PRESETS.map((d) => <option key={d} value={d} />)}</datalist>
 
           <div className="mt-4 space-y-3 border-t border-border pt-4">
             <Field label="কাস্টমার (বাকির জন্য দরকার)">
