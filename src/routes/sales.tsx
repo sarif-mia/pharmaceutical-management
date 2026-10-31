@@ -21,7 +21,9 @@ function POS() {
   const [q, setQ] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [discount, setDiscount] = useState(0);
+  const [discInput, setDiscInput] = useState(0);
+  const [pct, setPct] = useState(false);
+  const [trxId, setTrxId] = useState("");
   const [paid, setPaid] = useState<string>("");
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [customerId, setCustomerId] = useState("");
@@ -37,6 +39,7 @@ function POS() {
 
   const lines = cart.flatMap((l) => { const m = medicines.find((m) => m.id === l.medicineId); return m ? [{ ...l, m }] : []; });
   const subtotal = lines.reduce((a, l) => a + l.qty * l.m.price, 0);
+  const discount = Math.min(subtotal, pct ? Math.round(subtotal * Math.min(discInput, 100)) / 100 : discInput);
   const total = Math.max(0, subtotal - discount);
   const paidNum = paid === "" ? total : Number(paid);
   const change = paidNum > total ? paidNum - total : 0;
@@ -73,11 +76,11 @@ function POS() {
   }, [medicines]);
 
   const checkout = () => {
-    const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null });
+    const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null, trxId: method === "cash" ? undefined : trxId });
     if (typeof r === "string") return void toast.error(r);
     toast.success(`বিক্রি সম্পন্ন — ${taka(r.total)}`);
     setDone(r);
-    setCartOpen(false); setCart([]); setDiscount(0); setPaid(""); setCustomerId(""); setMethod("cash"); setQ("");
+    setCartOpen(false); setCart([]); setDiscInput(0); setPct(false); setTrxId(""); setPaid(""); setCustomerId(""); setMethod("cash"); setQ("");
   };
 
   return (
@@ -176,8 +179,9 @@ function POS() {
                 <Button key={p} aria-pressed={method === p} size="sm" variant={method === p ? "default" : "outline"} onClick={() => setMethod(p)} className="text-xs">{PAYMENT_LABEL[p]}</Button>
               ))}
             </div>
+            {method !== "cash" && <Field label={`${PAYMENT_LABEL[method]} TrxID / রেফারেন্স`}><Input value={trxId} onChange={(e) => setTrxId(e.target.value)} placeholder="যেমন 9A7B3XK2" /></Field>}
             <div className="grid grid-cols-2 gap-3">
-              <Field label="ছাড় (৳)"><Input type="number" min={0} value={discount || ""} onChange={(e) => setDiscount(Number(e.target.value) || 0)} /></Field>
+              <Field label={`ছাড় (${pct ? "%" : "৳"})`}><div className="flex gap-1"><Input type="number" min={0} value={discInput || ""} onChange={(e) => setDiscInput(Number(e.target.value) || 0)} /><Button type="button" variant="outline" size="icon" aria-label="ছাড়ের ধরন বদলান" onClick={() => setPct((v) => !v)}>{pct ? "%" : "৳"}</Button></div></Field>
               <Field label="পরিশোধ (৳)"><Input type="number" min={0} placeholder={total.toFixed(2)} value={paid} onChange={(e) => setPaid(e.target.value)} /></Field>
             </div>
             <div className="space-y-1 rounded-xl bg-muted p-3 text-sm">

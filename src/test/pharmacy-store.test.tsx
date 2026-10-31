@@ -106,3 +106,12 @@ d2("staff roles", () => {
     e2(canOpen("owner", "/staff")).toBe(true);
   });
 });
+
+d2("mfs trx id", () => {
+  be2(() => A.reset());
+  i2("bKash sale stores the TrxID", () => {
+    const r = A.checkout({ lines: [{ medicineId: "m1", qty: 1 }], discount: 0, paid: 1000, method: "bkash", customerId: null, trxId: " 9A7B3XK2 " });
+    if (typeof r === "string") throw new Error(r);
+    e2(r.trxId).toBe("9A7B3XK2");
+  });
+});
