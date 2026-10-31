@@ -20,8 +20,25 @@ export type Medicine = {
   stock: number;
   reorder: number;
   packSize?: number; // pieces per strip/box (1 = sold singly)
-  expiry: string; // YYYY-MM-DD
+  expiry: string; // YYYY-MM-DD — earliest expiry among stocked batches
+  batches?: Batch[]; // stock split by batch; sum(qty) === stock
 };
+export type Batch = { id: string; no: string; qty: number; expiry: string; cost: number };
+
+/** Batches of a medicine (legacy medicines without batches become one batch). */
+export function getBatches(m: Medicine): Batch[] {
+  if (m.batches && m.batches.length) return m.batches;
+  return m.stock > 0 ? [{ id: "b0", no: "-", qty: m.stock, expiry: m.expiry, cost: m.costPrice }] : [];
+}
+/** Pieces that can be sold right now (non-expired batches). */
+export function sellableStock(m: Medicine): number {
+  const t = new Date().toISOString().slice(0, 10);
+  return getBatches(m).filter((b) => b.expiry >= t).reduce((a, b) => a + b.qty, 0);
+}
+function withBatches(m: Medicine, batches: Batch[]): Medicine {
+  const live = batches.filter((b) => b.qty > 0).sort((a, b) => a.expiry.localeCompare(b.expiry));
+  return { ...m, batches: live, stock: live.reduce((a, b) => a + b.qty, 0), expiry: live[0]?.expiry ?? m.expiry };
+}
 export type Customer = { id: string; name: string; phone: string; address: string };
 export type PaymentMethod = "cash" | "bkash" | "nagad" | "card";
 export const PAYMENT_LABEL: Record<PaymentMethod, string> = { cash: "ক্যাশ", bkash: "বিকাশ", nagad: "নগদ", card: "কার্ড" };
@@ -187,8 +204,13 @@ export const actions = {
   removeCustomer: (id: string) => patch({ customers: cur().customers.filter((c) => c.id !== id) }),
   saveMedicine: (m: Omit<Medicine, "id"> & { id?: string | undefined }) => {
     const s = cur();
-    if (m.id) patch({ medicines: s.medicines.map((x) => (x.id === m.id ? ({ ...m, id: m.id } as Medicine) : x)) });
-    else patch({ medicines: [...s.medicines, { ...m, id: uid() }] });
+    const fix = (x: Medicine, old?: Medicine): Medicine => {
+      // keep batches when stock & expiry were not edited by hand; otherwise reset to one batch
+      if (old && old.batches?.length && old.stock === x.stock && old.expiry === x.expiry) return { ...x, batches: old.batches };
+      return { ...x, batches: x.stock > 0 ? [{ id: uid(), no: "-", qty: x.stock, expiry: x.expiry, cost: x.costPrice }] : [] };
+    };
+    if (m.id) patch({ medicines: s.medicines.map((x) => (x.id === m.id ? fix({ ...m, id: m.id } as Medicine, x) : x)) });
+    else patch({ medicines: [...s.medicines, fix({ ...m, id: uid() } as Medicine)] });
   },
   removeMedicine: (id: string) => patch({ medicines: cur().medicines.filter((m) => m.id !== id) }),
   addExpense: (e: Omit<Expense, "id">) => patch({ expenses: [{ ...e, id: uid() }, ...cur().expenses] }),
