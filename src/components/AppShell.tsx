@@ -1,7 +1,8 @@
-import { Link, Outlet } from "@tanstack/react-router";
+import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { canOpen, ROLE_LABEL, useShop } from "@/lib/cloud-sync";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Menu, X, Cross, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, LogOut,
+  LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Menu, X, Cross, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, LogOut, UserCog,
 } from "lucide-react";
 import { loadFromStorage, usePharmacy } from "@/lib/pharmacy-store";
 import { Toaster } from "@/components/ui/sonner";
@@ -22,6 +23,7 @@ const groups = [
     { to: "/suppliers", label: "সাপ্লায়ার", icon: Truck },
     { to: "/expenses", label: "খরচ", icon: Wallet },
     { to: "/reports", label: "রিপোর্ট", icon: BarChart3 },
+    { to: "/staff", label: "কর্মচারী", icon: UserCog },
     { to: "/settings", label: "সেটিংস", icon: Settings },
   ] },
 ] as const;
@@ -29,6 +31,9 @@ const groups = [
 export function AppShell() {
   const [open, setOpen] = useState(false);
   const { settings } = usePharmacy();
+  const shop = useShop();
+  const path = useLocation({ select: (l) => l.pathname });
+  const role = shop?.role ?? "cashier";
   useEffect(() => loadFromStorage(), []);
 
   return (
@@ -42,7 +47,7 @@ export function AppShell() {
           </div>
           <div>
             <div className="font-display text-lg font-semibold leading-none text-sidebar-accent-foreground">{settings.shopName}</div>
-            <div className="mt-1 text-xs opacity-70">ফার্মেসি ম্যানেজার</div>
+            <div className="mt-1 text-xs opacity-70">ফার্মেসি ম্যানেজার{shop ? ` · ${ROLE_LABEL[shop.role]}` : ""}</div>
           </div>
           <button className="ml-auto md:hidden" onClick={() => setOpen(false)} aria-label="মেনু বন্ধ">
             <X className="h-5 w-5" />
@@ -53,7 +58,7 @@ export function AppShell() {
             <div key={g.title}>
               <div className="px-4 pb-1.5 text-[11px] font-semibold uppercase tracking-widest opacity-50">{g.title}</div>
               <div className="space-y-0.5">
-                {g.items.map(({ to, label, icon: Icon }) => (
+                {g.items.filter((i) => canOpen(role, i.to)).map(({ to, label, icon: Icon }) => (
                   <Link
                     key={to}
                     to={to}
@@ -84,7 +89,7 @@ export function AppShell() {
           <span className="font-display text-lg font-semibold">{settings.shopName}</span>
         </header>
         <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 md:px-10 md:py-10">
-          <Outlet />
+          {canOpen(role, path) ? <Outlet /> : <div className="py-20 text-center text-muted-foreground">এই পাতা দেখার অনুমতি আপনার নেই</div>}
         </main>
       </div>
       <Toaster richColors position="top-right" />
