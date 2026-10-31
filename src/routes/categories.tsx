@@ -30,10 +30,21 @@ function Categories() {
       </form>
       <div className="flex flex-wrap gap-3">
         {categories.map((c) => (
-          <div key={c.id} className="flex items-center gap-3 rounded-full border border-border bg-card py-2 pl-5 pr-2">
+          <div
+            key={c.id}
+            className="flex items-center gap-3 rounded-full border border-border bg-card py-2 pl-5 pr-2"
+          >
             <span className="font-semibold">{c.name}</span>
-            <span className="rounded-full bg-secondary px-2 text-xs text-secondary-foreground">{medicines.filter((m) => m.categoryId === c.id).length}</span>
-            <button aria-label="মুছুন" onClick={() => actions.removeCategory(c.id)} className="rounded-full p-1 hover:bg-muted"><X className="h-4 w-4" /></button>
+            <span className="rounded-full bg-secondary px-2 text-xs text-secondary-foreground">
+              {medicines.filter((m) => m.categoryId === c.id).length}
+            </span>
+            <button
+              aria-label="মুছুন"
+              onClick={() => actions.removeCategory(c.id)}
+              className="rounded-full p-1 hover:bg-muted"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         ))}
       </div>

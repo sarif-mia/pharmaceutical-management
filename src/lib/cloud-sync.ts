@@ -1,11 +1,21 @@
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { actions, getState, loadFromStorage, subscribe, type PharmacyState } from "@/lib/pharmacy-store";
+import {
+  actions,
+  getState,
+  loadFromStorage,
+  subscribe,
+  type PharmacyState,
+} from "@/lib/pharmacy-store";
 
 export type ShopRole = "owner" | "manager" | "cashier";
 export type ShopSession = { shopId: string; role: ShopRole };
-export const ROLE_LABEL: Record<ShopRole, string> = { owner: "মালিক", manager: "ম্যানেজার", cashier: "ক্যাশিয়ার" };
+export const ROLE_LABEL: Record<ShopRole, string> = {
+  owner: "মালিক",
+  manager: "ম্যানেজার",
+  cashier: "ক্যাশিয়ার",
+};
 
 /** Pages each role may open. Owner: all. (The server enforces the same limits on saved data.) */
 const CASHIER = ["/", "/sales", "/invoices", "/customers", "/closing"];
@@ -19,13 +29,28 @@ export function canOpen(role: ShopRole, path: string) {
 let session: ShopSession | null = null;
 const ls = new Set<() => void>();
 const emit = () => ls.forEach((l) => l());
-export const useShop = () => useSyncExternalStore((l) => (ls.add(l), () => void ls.delete(l)), () => session, () => null);
+export const useShop = () =>
+  useSyncExternalStore(
+    (l) => (ls.add(l), () => void ls.delete(l)),
+    () => session,
+    () => null,
+  );
 
 export type SyncStatus = "saved" | "saving" | "error";
 let syncStatus: SyncStatus = "saved";
 const sl = new Set<() => void>();
-const setSync = (s: SyncStatus) => { if (s !== syncStatus) { syncStatus = s; sl.forEach((l) => l()); } };
-export const useSyncStatus = () => useSyncExternalStore((l) => (sl.add(l), () => void sl.delete(l)), () => syncStatus, () => "saved" as SyncStatus);
+const setSync = (s: SyncStatus) => {
+  if (s !== syncStatus) {
+    syncStatus = s;
+    sl.forEach((l) => l());
+  }
+};
+export const useSyncStatus = () =>
+  useSyncExternalStore(
+    (l) => (sl.add(l), () => void sl.delete(l)),
+    () => syncStatus,
+    () => "saved" as SyncStatus,
+  );
 
 // ---- Operation log: every user action is recorded so it can be replayed on top of newer shop data ----
 type AnyFn = (...a: unknown[]) => unknown;
@@ -44,7 +69,9 @@ for (const name of Object.keys(A)) {
       const r = original[name]!(...args);
       if (depth === 1 && recording) pending.push({ name, args });
       return r;
-    } finally { depth--; }
+    } finally {
+      depth--;
+    }
   };
 }
 
@@ -74,7 +101,11 @@ export async function startCloudSync(): Promise<() => void> {
   let stopped = false;
 
   const fetchRemote = async () => {
-    const { data, error } = await supabase.from("shop_data").select("data, version").eq("shop_id", shopId).single();
+    const { data, error } = await supabase
+      .from("shop_data")
+      .select("data, version")
+      .eq("shop_id", shopId)
+      .single();
     if (error) throw error;
     return data as { data: PharmacyState | Record<string, never>; version: number };
   };
@@ -95,11 +126,22 @@ export async function startCloudSync(): Promise<() => void> {
     try {
       for (let attempt = 0; attempt < 5 && pending.length; attempt++) {
         const count = pending.length;
-        const { data: v, error } = await supabase.rpc("save_shop_data", { _shop: shopId, _data: getState() as never, _version: version });
-        if (!error) { version = Number(v); pending.splice(0, count); continue; }
+        const { data: v, error } = await supabase.rpc("save_shop_data", {
+          _shop: shopId,
+          _data: getState() as never,
+          _version: version,
+        });
+        if (!error) {
+          version = Number(v);
+          pending.splice(0, count);
+          continue;
+        }
         const remote = await fetchRemote();
         version = remote.version;
-        if (error.message.includes("conflict")) { applyRemote(remote.data as PharmacyState); continue; }
+        if (error.message.includes("conflict")) {
+          applyRemote(remote.data as PharmacyState);
+          continue;
+        }
         toast.error("এই পরিবর্তনের অনুমতি আপনার নেই — বাতিল করা হলো");
         pending.length = 0;
         applyRemote(remote.data as PharmacyState);
@@ -108,7 +150,10 @@ export async function startCloudSync(): Promise<() => void> {
     } catch {
       failed = true;
       toast.error("অনলাইনে সেভ হয়নি — আবার চেষ্টা হবে");
-    } finally { busy = false; setSync(failed ? "error" : pending.length ? "saving" : "saved"); }
+    } finally {
+      busy = false;
+      setSync(failed ? "error" : pending.length ? "saving" : "saved");
+    }
   };
 
   let t: ReturnType<typeof setTimeout> | undefined;
@@ -123,7 +168,11 @@ export async function startCloudSync(): Promise<() => void> {
   // pick up other staff members' changes
   const poll = setInterval(async () => {
     if (busy || pending.length) return void flush();
-    const { data } = await supabase.from("shop_data").select("version").eq("shop_id", shopId).single();
+    const { data } = await supabase
+      .from("shop_data")
+      .select("version")
+      .eq("shop_id", shopId)
+      .single();
     if (data && data.version > version && !busy && !pending.length) {
       const remote = await fetchRemote();
       version = remote.version;
@@ -131,7 +180,16 @@ export async function startCloudSync(): Promise<() => void> {
     }
   }, 5000);
 
-  return () => { stopped = true; recording = false; clearTimeout(t); clearInterval(poll); unsub(); pending.length = 0; session = null; emit(); };
+  return () => {
+    stopped = true;
+    recording = false;
+    clearTimeout(t);
+    clearInterval(poll);
+    unsub();
+    pending.length = 0;
+    session = null;
+    emit();
+  };
 }
 
 original["__initial"] = () => null;
