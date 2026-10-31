@@ -115,3 +115,18 @@ d2("mfs trx id", () => {
     e2(r.trxId).toBe("9A7B3XK2");
   });
 });
+
+import { dayClosing } from "@/lib/pharmacy-store";
+d2("day closing", () => {
+  be2(() => A.reset());
+  i2("expected cash = cash sales + due collected - expenses", () => {
+    const d = G().sales.length ? "2099-01-01" : "2099-01-01";
+    const s = { ...G() };
+    const z0 = dayClosing(s, d);
+    e2(z0.expectedCash).toBe(0);
+    const st = { ...s, sales: [{ ...s.sales[0]!, date: d, method: "cash" as const, paid: 100 }, { ...s.sales[0]!, id: "x", date: d, method: "bkash" as const, paid: 50 }], payments: [{ id: "p", kind: "customer" as const, partyId: "u1", amount: 30, date: d }], expenses: [{ id: "e", title: "t", type: "বিল", amount: 20, date: d }] };
+    const z = dayClosing(st, d);
+    e2(z.byMethod.bkash).toBe(50);
+    e2(z.expectedCash).toBe(110);
+  });
+});

@@ -8,7 +8,7 @@ export type ShopSession = { shopId: string; role: ShopRole };
 export const ROLE_LABEL: Record<ShopRole, string> = { owner: "মালিক", manager: "ম্যানেজার", cashier: "ক্যাশিয়ার" };
 
 /** Pages each role may open. Owner: all. (The server enforces the same limits on saved data.) */
-const CASHIER = ["/", "/sales", "/invoices", "/customers"];
+const CASHIER = ["/", "/sales", "/invoices", "/customers", "/closing"];
 const MANAGER_BLOCK = ["/settings", "/staff"];
 export function canOpen(role: ShopRole, path: string) {
   if (role === "owner") return true;
@@ -20,6 +20,12 @@ let session: ShopSession | null = null;
 const ls = new Set<() => void>();
 const emit = () => ls.forEach((l) => l());
 export const useShop = () => useSyncExternalStore((l) => (ls.add(l), () => void ls.delete(l)), () => session, () => null);
+
+export type SyncStatus = "saved" | "saving" | "error";
+let syncStatus: SyncStatus = "saved";
+const sl = new Set<() => void>();
+const setSync = (s: SyncStatus) => { if (s !== syncStatus) { syncStatus = s; sl.forEach((l) => l()); } };
+export const useSyncStatus = () => useSyncExternalStore((l) => (sl.add(l), () => void sl.delete(l)), () => syncStatus, () => "saved" as SyncStatus);
 
 // ---- Operation log: every user action is recorded so it can be replayed on top of newer shop data ----
 type AnyFn = (...a: unknown[]) => unknown;
@@ -84,6 +90,8 @@ export async function startCloudSync(): Promise<() => void> {
   const flush = async (): Promise<void> => {
     if (busy || stopped || !pending.length) return;
     busy = true;
+    setSync("saving");
+    let failed = false;
     try {
       for (let attempt = 0; attempt < 5 && pending.length; attempt++) {
         const count = pending.length;
@@ -98,13 +106,15 @@ export async function startCloudSync(): Promise<() => void> {
         break;
       }
     } catch {
+      failed = true;
       toast.error("অনলাইনে সেভ হয়নি — আবার চেষ্টা হবে");
-    } finally { busy = false; }
+    } finally { busy = false; setSync(failed ? "error" : pending.length ? "saving" : "saved"); }
   };
 
   let t: ReturnType<typeof setTimeout> | undefined;
   const unsub = subscribe(() => {
     if (!recording) return;
+    setSync("saving");
     clearTimeout(t);
     t = setTimeout(() => void flush(), 600);
   });

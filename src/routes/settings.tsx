@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Download, FileSpreadsheet, RotateCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { Field, PageTitle, Panel } from "@/components/AppShell";
+import { Field, PageTitle, Panel, selectCls } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
@@ -32,7 +32,7 @@ function SettingsPage() {
             const f = new FormData(e.currentTarget);
             actions.updateSettings({
               shopName: String(f.get("shopName")), address: String(f.get("address")), phone: String(f.get("phone")), license: String(f.get("license")),
-              lowStock: Number(f.get("lowStock")) || 0, expiryDays: Number(f.get("expiryDays")) || 30,
+              lowStock: Number(f.get("lowStock")) || 0, expiryDays: Number(f.get("expiryDays")) || 30, receiptWidth: f.get("receiptWidth") === "58" ? "58" : "80",
             });
             toast.success("সেটিংস সেভ হলো");
           }}>
@@ -43,6 +43,7 @@ function SettingsPage() {
               <Field label="ড্রাগ লাইসেন্স নং"><Input name="license" defaultValue={settings.license} /></Field>
               <Field label="কম স্টক সীমা"><Input name="lowStock" type="number" min={0} defaultValue={settings.lowStock} /></Field>
               <Field label="মেয়াদ সতর্কতা (দিন আগে)"><Input name="expiryDays" type="number" min={1} defaultValue={settings.expiryDays} /></Field>
+              <Field label="রসিদের মাপ (প্রিন্টার)"><select name="receiptWidth" className={selectCls} defaultValue={settings.receiptWidth ?? "80"}><option value="80">৮০ মিমি</option><option value="58">৫৮ মিমি</option></select></Field>
             </div>
             <Button type="submit">সেভ করুন</Button>
           </form>

@@ -1,7 +1,14 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { Cross, Ellipsis, LogOut } from "lucide-react";
-import { canOpen, ROLE_LABEL, useShop } from "@/lib/cloud-sync";
+import { canOpen, ROLE_LABEL, useShop, useSyncStatus } from "@/lib/cloud-sync";
+
+const SYNC = { saved: ["bg-primary", "সেভ হয়েছে"], saving: ["bg-warning animate-pulse", "সেভ হচ্ছে…"], error: ["bg-destructive", "সেভ হয়নি"] } as const;
+function SyncDot() {
+  const s = useSyncStatus();
+  const [c, t] = SYNC[s];
+  return <span className="ml-1.5 inline-flex items-center gap-1" title={t}><span className={`inline-block h-1.5 w-1.5 rounded-full ${c}`} />{t}</span>;
+}
 import { usePharmacy } from "@/lib/pharmacy-store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -23,13 +30,13 @@ export function PharmacyLayout() {
   })}</nav>;
   return <div className="flex min-h-dvh bg-background text-foreground">
     <aside className="no-print sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
-      <div className="flex min-w-0 items-center gap-3 px-5 py-6"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"><Cross className="h-5 w-5" /></div><div className="min-w-0"><p className="truncate text-base font-semibold">{settings.shopName}</p><p className="mt-1 text-xs opacity-60">{ROLE_LABEL[role]}</p></div></div>
+      <div className="flex min-w-0 items-center gap-3 px-5 py-6"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"><Cross className="h-5 w-5" /></div><div className="min-w-0"><p className="truncate text-base font-semibold">{settings.shopName}</p><p className="mt-1 text-xs opacity-60">{ROLE_LABEL[role]}<SyncDot /></p></div></div>
       <div className="flex-1 overflow-y-auto px-3 pb-5">{nav()}</div>
       <Button variant="ghost" onClick={signOut} className="mx-3 mb-4 justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"><LogOut className="h-4 w-4" />লগআউট</Button>
     </aside>
     <div className="min-w-0 flex-1">
       <header className="no-print sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-card px-4 py-3 md:hidden">
-        <div className="flex min-w-0 items-center gap-2.5"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><Cross className="h-4 w-4" /></div><div className="min-w-0"><p className="truncate text-sm font-semibold">{settings.shopName}</p><p className="text-[11px] text-muted-foreground">{ROLE_LABEL[role]}</p></div></div>
+        <div className="flex min-w-0 items-center gap-2.5"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><Cross className="h-4 w-4" /></div><div className="min-w-0"><p className="truncate text-sm font-semibold">{settings.shopName}</p><p className="text-[11px] text-muted-foreground">{ROLE_LABEL[role]}<SyncDot /></p></div></div>
         <Button size="icon" variant="ghost" onClick={() => setOpen(true)} aria-label="সব পাতা খুলুন"><Ellipsis className="h-5 w-5" /></Button>
       </header>
       <main className="pharmacy-content mx-auto w-full max-w-7xl px-4 py-5 pb-28 sm:px-6 md:px-8 md:py-8">{canOpen(role, path) ? <Outlet /> : <div className="py-20 text-center text-muted-foreground">এই পাতা দেখার অনুমতি আপনার নেই</div>}</main>

@@ -1,10 +1,11 @@
-import { LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, UserCog } from "lucide-react";
+import { LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, UserCog, Calculator } from "lucide-react";
 
 export const navigationGroups = [
   { title: "প্রধান", items: [
     { to: "/", label: "ড্যাশবোর্ড", shortLabel: "হোম", icon: LayoutDashboard },
     { to: "/sales", label: "বিক্রি (POS)", shortLabel: "বিক্রি", icon: ShoppingCart },
     { to: "/invoices", label: "ইনভয়েস", shortLabel: "ইনভয়েস", icon: Receipt },
+    { to: "/closing", label: "দিনশেষ হিসাব", shortLabel: "দিনশেষ", icon: Calculator },
   ] },
   { title: "স্টক", items: [
     { to: "/medicines", label: "ওষুধ ও স্টক", shortLabel: "স্টক", icon: Pill },

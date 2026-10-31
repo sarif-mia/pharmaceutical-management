@@ -4,7 +4,7 @@ export function Receipt({ sale }: { sale: Sale }) {
   const { settings, customers } = usePharmacy();
   const cust = customers.find((c) => c.id === sale.customerId);
   return (
-    <div className="receipt mx-auto w-full max-w-[320px] bg-card p-4 font-mono text-xs text-card-foreground">
+    <div className={`receipt mx-auto w-full ${settings.receiptWidth === "58" ? "max-w-[220px] text-[11px]" : "max-w-[320px] text-xs"} bg-card p-3 font-mono text-card-foreground`}>
       <div className="text-center">
         <div className="text-base font-bold">{settings.shopName}</div>
         <div>{settings.address}</div>
