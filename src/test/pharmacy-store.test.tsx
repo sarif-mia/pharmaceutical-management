@@ -76,7 +76,7 @@ d2("batch inventory", () => {
     const m = G().medicines[0]!;
     A.saveMedicine({ ...m, stock: 10, expiry: DF(-1) });
     A.addPurchase({ supplierId: "s1", items: [{ medicineId: m.id, qty: 3, cost: 1, expiry: DF(300) }], paid: 0, date: DF(0), note: "" });
-    e2(A.sell(m.id, 4)).toContain("৩".length ? "3" : "3");
+    e2(A.sell(m.id, 4)).toContain("3");
     e2(A.sell(m.id, 3)).toBeNull();
   });
 });
