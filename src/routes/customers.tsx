@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { HandCoins, Phone, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { PageTitle, Panel } from "@/components/AppShell";
+import { PageTitle, Panel } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LedgerButton } from "@/components/LedgerDialog";
