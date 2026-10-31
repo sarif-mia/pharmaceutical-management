@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Field, PageTitle, Panel, selectCls, tdCls, thCls } from "@/components/AppShell";
+import { Field, PageTitle, Panel, selectCls, tdCls, thCls } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
@@ -52,7 +52,7 @@ function Purchases() {
         {items.length > 0 && (
           <ul className="mt-4 divide-y divide-border text-sm">
             {items.map((i, k) => (
-              <li key={k} className="flex items-center justify-between py-2">
+              <li key={k} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2">
                 <span className="font-medium">{mName(i.medicineId)}</span>
                 <span className="text-muted-foreground">{i.qty} × {taka(i.cost)} · {i.batchNo ? `ব্যাচ ${i.batchNo} · ` : ""}মেয়াদ {i.expiry}</span>
                 <span className="flex items-center gap-2 font-semibold">{taka(i.qty * i.cost)}<Button size="icon" variant="ghost" onClick={() => setItems(items.filter((_, j) => j !== k))}><Trash2 className="h-4 w-4 text-destructive" /></Button></span>
@@ -71,7 +71,17 @@ function Purchases() {
         </div>
       </Panel>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="space-y-2 md:hidden">
+        {purchases.map((p) => (
+          <div key={p.id} className="rounded-lg border border-border bg-card p-3 text-sm">
+            <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate font-semibold">{sName(p.supplierId)}</p><p className="text-xs text-muted-foreground">{p.date}{p.note ? ` · ${p.note}` : ""}</p></div><p className="shrink-0 font-semibold">{taka(p.total)}</p></div>
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.items.map((i) => `${mName(i.medicineId)}×${i.qty}`).join(", ")}</p>
+            {p.total - p.paid > 0 && <p className="mt-1 text-xs font-medium text-destructive">বাকি {taka(p.total - p.paid)}</p>}
+          </div>
+        ))}
+        {!purchases.length && <p className="py-8 text-center text-muted-foreground">কোনো চালান নেই</p>}
+      </div>
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
         <table className="w-full text-sm">
           <thead className="bg-muted text-muted-foreground"><tr><th className={thCls}>তারিখ</th><th className={thCls}>সাপ্লায়ার</th><th className={thCls}>আইটেম</th><th className={thCls}>নোট</th><th className={thCls}>মোট</th><th className={thCls}>পরিশোধ</th><th className={thCls}>বাকি</th></tr></thead>
           <tbody>
