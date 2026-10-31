@@ -186,7 +186,7 @@
 }
 body { font-family: var(--font-sans); letter-spacing: 0; }
 .pharmacy-content { overflow-wrap: anywhere; }
-.pos-cart-bar { bottom: calc(4.75rem + env(safe-area-inset-bottom)); }
+.pos-cart-bar { bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
 .mobile-navigation { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
 @media (max-width: 639px) {
   .page-heading > :nth-child(2) { grid-column: 1 / -1; }

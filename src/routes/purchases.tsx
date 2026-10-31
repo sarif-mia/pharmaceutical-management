@@ -36,6 +36,8 @@ function Purchases() {
         </div>
         <div className="grid gap-3 rounded-xl bg-muted p-3 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] md:items-end">
           <Field label="ওষুধ">
+            <input list="purchase-medicines" placeholder="নাম লিখে খুঁজুন…" className={`${selectCls} mb-1.5`} onChange={(e) => { const m = medicines.find((x) => `${x.name} ${x.strength} (${x.company})` === e.target.value); if (m) setRow({ ...row, medicineId: m.id, cost: m.costPrice }); }} />
+            <datalist id="purchase-medicines">{medicines.map((m) => <option key={m.id} value={`${m.name} ${m.strength} (${m.company})`} />)}</datalist>
             <select className={selectCls} value={row.medicineId} onChange={(e) => { const m = medicines.find((x) => x.id === e.target.value); setRow({ ...row, medicineId: e.target.value, cost: m?.costPrice ?? 0 }); }}>
               <option value="">বেছে নিন…</option>
               {medicines.map((m) => <option key={m.id} value={m.id}>{m.name} {m.strength} ({m.company})</option>)}
