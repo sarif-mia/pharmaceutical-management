@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as ClosingRouteImport } from './routes/closing'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const CategoriesRoute = CategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClosingRoute = ClosingRouteImport.update({
+  id: '/closing',
+  path: '/closing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomersRoute = CustomersRouteImport.update({
@@ -86,6 +92,7 @@ const SuppliersRoute = SuppliersRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/closing': typeof ClosingRoute
   '/customers': typeof CustomersRoute
   '/expenses': typeof ExpensesRoute
   '/invoices': typeof InvoicesRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/closing': typeof ClosingRoute
   '/customers': typeof CustomersRoute
   '/expenses': typeof ExpensesRoute
   '/invoices': typeof InvoicesRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/closing': typeof ClosingRoute
   '/customers': typeof CustomersRoute
   '/expenses': typeof ExpensesRoute
   '/invoices': typeof InvoicesRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/categories'
+    | '/closing'
     | '/customers'
     | '/expenses'
     | '/invoices'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/categories'
+    | '/closing'
     | '/customers'
     | '/expenses'
     | '/invoices'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/categories'
+    | '/closing'
     | '/customers'
     | '/expenses'
     | '/invoices'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CategoriesRoute: typeof CategoriesRoute
+  ClosingRoute: typeof ClosingRoute
   CustomersRoute: typeof CustomersRoute
   ExpensesRoute: typeof ExpensesRoute
   InvoicesRoute: typeof InvoicesRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/categories'
       preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/closing': {
+      id: '/closing'
+      path: '/closing'
+      fullPath: '/closing'
+      preLoaderRoute: typeof ClosingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customers': {
@@ -278,6 +298,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CategoriesRoute: CategoriesRoute,
+  ClosingRoute: ClosingRoute,
   CustomersRoute: CustomersRoute,
   ExpensesRoute: ExpensesRoute,
   InvoicesRoute: InvoicesRoute,
