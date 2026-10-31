@@ -8,7 +8,7 @@ export type ShopSession = { shopId: string; role: ShopRole };
 export const ROLE_LABEL: Record<ShopRole, string> = { owner: "মালিক", manager: "ম্যানেজার", cashier: "ক্যাশিয়ার" };
 
 /** Pages each role may open. Owner: all. (The server enforces the same limits on saved data.) */
-const CASHIER = ["/", "/sales", "/invoices", "/customers"];
+const CASHIER = ["/", "/sales", "/invoices", "/customers", "/closing"];
 const MANAGER_BLOCK = ["/settings", "/staff"];
 export function canOpen(role: ShopRole, path: string) {
   if (role === "owner") return true;

@@ -62,7 +62,7 @@ export type PurchaseItem = { medicineId: string; qty: number; cost: number; expi
 export type Purchase = { id: string; supplierId: string; items: PurchaseItem[]; total: number; paid: number; date: string; note: string };
 export type Payment = { id: string; kind: "customer" | "supplier"; partyId: string; amount: number; date: string };
 export type Expense = { id: string; title: string; type: string; amount: number; date: string };
-export type Settings = { shopName: string; address: string; phone: string; license: string; lowStock: number; expiryDays: number };
+export type Settings = { shopName: string; address: string; phone: string; license: string; lowStock: number; expiryDays: number; receiptWidth?: "58" | "80" };
 
 export type PharmacyState = {
   categories: Category[];
