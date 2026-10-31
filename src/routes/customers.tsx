@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { HandCoins, Phone, Trash2, UserPlus } from "lucide-react";
+import { HandCoins, MessageCircle, Phone, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { PageTitle, Panel } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,11 @@ function Customers() {
                   <Button type="submit" variant="outline"><HandCoins className="h-4 w-4" /> আদায়</Button>
                 </form>
               )}
+              {due > 0 && c.phone && (
+                <Button variant="ghost" size="sm" className="mt-2 w-full text-primary" onClick={() => remind(c.name, c.phone, due, st.settings.shopName, st.settings.phone)}>
+                  <MessageCircle className="h-4 w-4" /> WhatsApp-এ বাকি তাগাদা
+                </Button>
+              )}
               <LedgerButton kind="customer" id={c.id} name={c.name} />
             </div>
           );
@@ -77,4 +82,11 @@ function Customers() {
       </div>
     </>
   );
+}
+
+function remind(name: string, phone: string, due: number, shop: string, shopPhone: string) {
+  const d = phone.replace(/\D/g, "");
+  const num = d.startsWith("01") ? `88${d}` : d;
+  const msg = `সম্মানিত ${name}, ${shop}-এ আপনার বকেয়া ${taka(due)}। সুবিধামতো সময়ে পরিশোধ করার অনুরোধ রইল। ধন্যবাদ।${shopPhone ? `\nযোগাযোগ: ${shopPhone}` : ""}`;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank");
 }

@@ -20,6 +20,7 @@ import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ShortageRouteImport } from './routes/shortage'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SuppliersRouteImport } from './routes/suppliers'
 
@@ -78,6 +79,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShortageRoute = ShortageRouteImport.update({
+  id: '/shortage',
+  path: '/shortage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/shortage': typeof ShortageRoute
   '/staff': typeof StaffRoute
   '/suppliers': typeof SuppliersRoute
 }
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/shortage': typeof ShortageRoute
   '/staff': typeof StaffRoute
   '/suppliers': typeof SuppliersRoute
 }
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/shortage': typeof ShortageRoute
   '/staff': typeof StaffRoute
   '/suppliers': typeof SuppliersRoute
 }
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/settings'
+    | '/shortage'
     | '/staff'
     | '/suppliers'
   fileRoutesByTo: FileRoutesByTo
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/settings'
+    | '/shortage'
     | '/staff'
     | '/suppliers'
   id:
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/settings'
+    | '/shortage'
     | '/staff'
     | '/suppliers'
   fileRoutesById: FileRoutesById
@@ -195,6 +207,7 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   SalesRoute: typeof SalesRoute
   SettingsRoute: typeof SettingsRoute
+  ShortageRoute: typeof ShortageRoute
   StaffRoute: typeof StaffRoute
   SuppliersRoute: typeof SuppliersRoute
 }
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shortage': {
+      id: '/shortage'
+      path: '/shortage'
+      fullPath: '/shortage'
+      preLoaderRoute: typeof ShortageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff': {
       id: '/staff'
       path: '/staff'
@@ -307,6 +327,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   SalesRoute: SalesRoute,
   SettingsRoute: SettingsRoute,
+  ShortageRoute: ShortageRoute,
   StaffRoute: StaffRoute,
   SuppliersRoute: SuppliersRoute,
 }
