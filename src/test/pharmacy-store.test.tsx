@@ -81,3 +81,18 @@ d2("batch inventory", () => {
     e2(A.sell(m.id, 3)).toBeNull();
   });
 });
+
+import { canOpen } from "@/lib/cloud-sync";
+d2("staff roles", () => {
+  i2("cashier only sees sales, invoices, customers and dashboard", () => {
+    e2(canOpen("cashier", "/sales")).toBe(true);
+    e2(canOpen("cashier", "/purchases")).toBe(false);
+    e2(canOpen("cashier", "/reports")).toBe(false);
+  });
+  i2("manager sees everything except settings and staff", () => {
+    e2(canOpen("manager", "/reports")).toBe(true);
+    e2(canOpen("manager", "/settings")).toBe(false);
+    e2(canOpen("manager", "/staff")).toBe(false);
+    e2(canOpen("owner", "/staff")).toBe(true);
+  });
+});

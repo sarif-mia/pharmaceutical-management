@@ -24,7 +24,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) { setReady(false); return; }
     let stop: (() => void) | undefined;
-    startCloudSync(user.id).then((s) => { stop = s; setReady(true); }).catch(() => { toast.error("অনলাইন তথ্য আনা যায়নি"); setReady(true); });
+    startCloudSync().then((s) => { stop = s; setReady(true); }).catch(() => { toast.error("অনলাইন তথ্য আনা যায়নি"); setReady(true); });
     return () => stop?.();
   }, [user?.id]);
 
