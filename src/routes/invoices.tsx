@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, MessageCircle, Printer, Search, Undo2 } from "lucide-react";
 import { toast } from "sonner";
-import { PageTitle, tdCls, thCls } from "@/components/AppShell";
+import { PageTitle, tdCls, thCls } from "@/components/shared/page-ui";
 import { Receipt } from "@/components/Receipt";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

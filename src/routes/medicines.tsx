@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Download, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Download, Layers, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { BatchDialog } from "@/components/BatchDialog";
 import { toast } from "sonner";
 import { Field, PageTitle, selectCls, tdCls, thCls } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ function Medicines() {
   const [cat, setCat] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [edit, setEdit] = useState<Partial<Medicine> | null>(null);
+  const [batchOf, setBatchOf] = useState<string | null>(null);
   const s = q.toLowerCase();
   const list = medicines.filter((m) =>
     (!s || [m.name, m.generic, m.company, m.barcode, m.rack].some((x) => x.toLowerCase().includes(s))) &&
@@ -70,7 +72,7 @@ function Medicines() {
             <div className="min-w-0"><h2 className="text-sm font-semibold">{m.name} <span className="font-normal text-muted-foreground">{m.strength}</span></h2><p className="mt-0.5 text-xs text-muted-foreground">{m.generic} · {m.form}</p><p className="mt-1 text-xs text-muted-foreground">{m.company} · র‍্যাক {m.rack || "—"}</p></div>
             <div className="text-right"><p className="text-sm font-bold text-primary">{taka(m.price)}</p><p className={`mt-1 text-xs ${isLow(m, settings) ? "text-destructive" : "text-muted-foreground"}`}>স্টক {m.stock} পিস</p></div>
           </div>
-          <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"><div className="min-w-0 text-xs"><span className={isExpired(m) ? "text-destructive" : "text-muted-foreground"}>মেয়াদ {m.expiry}</span>{getBatches(m).length > 1 && <span className="ml-2 text-muted-foreground">{getBatches(m).length} ব্যাচ</span>}</div><div className="flex shrink-0 gap-1"><Button size="icon" variant="ghost" aria-label={`${m.name} এডিট`} onClick={() => setEdit(m)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" aria-label={`${m.name} মুছুন`} onClick={() => { if (confirm(`${m.name} মুছে ফেলবেন?`)) actions.removeMedicine(m.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button></div></div>
+          <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"><div className="min-w-0 text-xs"><span className={isExpired(m) ? "text-destructive" : "text-muted-foreground"}>মেয়াদ {m.expiry}</span><button type="button" className="ml-2 text-primary underline-offset-2 hover:underline" onClick={() => setBatchOf(m.id)}>{getBatches(m).length} ব্যাচ</button></div><div className="flex shrink-0 gap-1"><Button size="icon" variant="ghost" aria-label={`${m.name} ব্যাচ ও স্টক সমন্বয়`} onClick={() => setBatchOf(m.id)}><Layers className="h-4 w-4" /></Button><Button size="icon" variant="ghost" aria-label={`${m.name} এডিট`} onClick={() => setEdit(m)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" aria-label={`${m.name} মুছুন`} onClick={() => { if (confirm(`${m.name} মুছে ফেলবেন?`)) actions.removeMedicine(m.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button></div></div>
         </article>)}
         {!list.length && <p className="py-8 text-center text-sm text-muted-foreground">কিছু পাওয়া যায়নি</p>}
       </div>
@@ -93,9 +95,10 @@ function Medicines() {
                 <td className={tdCls}><span className={isLow(m, settings) ? "font-bold text-destructive" : "font-semibold"}>{m.stock}</span></td>
                 <td className={tdCls}>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isExpired(m) ? "bg-destructive/10 text-destructive" : expiresSoon(m, settings.expiryDays) ? "bg-accent/30 text-accent-foreground" : "bg-secondary text-secondary-foreground"}`}>{m.expiry}</span>
-                  {getBatches(m).length > 1 && <div className="mt-1 text-xs text-muted-foreground" title={getBatches(m).map((b) => `${b.no}: ${b.qty} পিস · ${b.expiry}`).join("\n")}>{getBatches(m).length}টি ব্যাচ</div>}
+                  <button type="button" className="mt-1 block text-xs text-primary hover:underline" onClick={() => setBatchOf(m.id)}>{getBatches(m).length}টি ব্যাচ</button>
                 </td>
                 <td className={`${tdCls} whitespace-nowrap text-right`}>
+                  <Button size="icon" variant="ghost" aria-label="ব্যাচ ও স্টক সমন্বয়" onClick={() => setBatchOf(m.id)}><Layers className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" aria-label="এডিট" onClick={() => setEdit(m)}><Pencil className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" aria-label="মুছুন" onClick={() => { if (confirm(`${m.name} মুছে ফেলবেন?`)) actions.removeMedicine(m.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </td>
@@ -105,6 +108,7 @@ function Medicines() {
           </tbody>
         </table>
       </div>
+      {batchOf && <BatchDialog medicineId={batchOf} onClose={() => setBatchOf(null)} />}
       {edit && <MedicineDialog med={edit} onClose={() => setEdit(null)} />}
     </>
   );

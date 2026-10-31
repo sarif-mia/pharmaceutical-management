@@ -130,3 +130,23 @@ d2("day closing", () => {
     e2(z.expectedCash).toBe(110);
   });
 });
+
+import { getBatches as gb, supplierDue as sd } from "@/lib/pharmacy-store";
+d2("stock adjustment", () => {
+  be2(() => A.reset());
+  i2("damage cuts batch stock; cannot remove more than batch has", () => {
+    const m = G().medicines.find((x) => x.id === "m1")!;
+    const b = gb(m)[0]!;
+    e2(A.adjustStock({ medicineId: "m1", batchId: b.id, qty: b.qty + 1, reason: "damage" })).toBeTruthy();
+    e2(A.adjustStock({ medicineId: "m1", batchId: b.id, qty: 5, reason: "damage" })).toBeNull();
+    e2(G().medicines.find((x) => x.id === "m1")!.stock).toBe(m.stock - 5);
+    e2(G().adjustments?.[0]?.qty).toBe(5);
+  });
+  i2("supplier return lowers what we owe that supplier by qty x batch cost", () => {
+    const m = G().medicines.find((x) => x.id === "m1")!;
+    const b = gb(m)[0]!;
+    const before = sd(G(), "s2");
+    e2(A.adjustStock({ medicineId: "m1", batchId: b.id, qty: 10, reason: "supplier", supplierId: "s2" })).toBeNull();
+    e2(sd(G(), "s2")).toBeCloseTo(before - 10 * b.cost);
+  });
+});

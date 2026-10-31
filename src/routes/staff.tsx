@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PageTitle, Panel, Field, selectCls, thCls, tdCls, Empty } from "@/components/AppShell";
+import { PageTitle, Panel, Field, selectCls, thCls, tdCls, Empty } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ROLE_LABEL, useShop, type ShopRole } from "@/lib/cloud-sync";

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { X } from "lucide-react";
-import { PageTitle } from "@/components/AppShell";
+import { PageTitle } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, usePharmacy } from "@/lib/pharmacy-store";

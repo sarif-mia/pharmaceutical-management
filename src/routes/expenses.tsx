@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
-import { PageTitle, Panel, selectCls, tdCls, thCls } from "@/components/AppShell";
+import { PageTitle, Panel, selectCls, tdCls, thCls } from "@/components/shared/page-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";

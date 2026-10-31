@@ -184,6 +184,10 @@ function POS() {
               <Field label={`ছাড় (${pct ? "%" : "৳"})`}><div className="flex gap-1"><Input type="number" min={0} value={discInput || ""} onChange={(e) => setDiscInput(Number(e.target.value) || 0)} /><Button type="button" variant="outline" size="icon" aria-label="ছাড়ের ধরন বদলান" onClick={() => setPct((v) => !v)}>{pct ? "%" : "৳"}</Button></div></Field>
               <Field label="পরিশোধ (৳)"><Input type="number" min={0} placeholder={total.toFixed(2)} value={paid} onChange={(e) => setPaid(e.target.value)} /></Field>
             </div>
+            {lines.length > 0 && <div className="flex flex-wrap gap-1.5">
+              <Button type="button" size="sm" variant="secondary" className="h-8 text-xs" onClick={() => setPaid("")}>পুরো টাকা</Button>
+              {[50, 100, 200, 500, 1000].filter((n) => n >= total).slice(0, 4).map((n) => <Button key={n} type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => setPaid(String(n))}>৳{n}</Button>)}
+            </div>}
             <div className="space-y-1 rounded-xl bg-muted p-3 text-sm">
               <div className="flex justify-between"><span>সাবটোটাল</span><span>{taka(subtotal)}</span></div>
               {discount > 0 && <div className="flex justify-between"><span>ছাড়</span><span>- {taka(discount)}</span></div>}

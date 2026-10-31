@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Banknote, PackageX, Receipt, TrendingUp, Wallet } from "lucide-react";
+import { Banknote, PackageX, Printer, Receipt, TrendingUp, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { PageTitle, Panel, Stat } from "@/components/AppShell";
+import { PageTitle, Panel, Stat } from "@/components/shared/page-ui";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
-import { daysFromNow, isExpired, PAYMENT_LABEL, saleProfit, taka, today, usePharmacy, type PaymentMethod } from "@/lib/pharmacy-store";
+import { adjustmentLoss, daysFromNow, isExpired, PAYMENT_LABEL, saleProfit, taka, today, usePharmacy, type PaymentMethod } from "@/lib/pharmacy-store";
 
 export const Route = createFileRoute("/reports")({
   head: pageHead("রিপোর্ট", "যেকোনো সময়ের বিক্রি, লাভ, খরচ, পেমেন্ট ও মেয়াদোত্তীর্ণ লোকসানের হিসাব।"),
@@ -13,7 +14,8 @@ export const Route = createFileRoute("/reports")({
 });
 
 function Reports() {
-  const { sales, expenses, medicines, purchases } = usePharmacy();
+  const st = usePharmacy();
+  const { sales, expenses, medicines, purchases } = st;
   const [from, setFrom] = useState(daysFromNow(-29));
   const [to, setTo] = useState(today());
   const inR = (d: string) => d >= from && d <= to;
@@ -23,6 +25,7 @@ function Reports() {
   const exp = expenses.filter((e) => inR(e.date)).reduce((a, e) => a + e.amount, 0);
   const buy = purchases.filter((p) => inR(p.date)).reduce((a, p) => a + p.total, 0);
   const expiredLoss = medicines.filter(isExpired).reduce((a, m) => a + m.stock * m.costPrice, 0);
+  const wasted = adjustmentLoss(st, from, to);
 
   const byMethod = (Object.keys(PAYMENT_LABEL) as PaymentMethod[]).map((k) => ({ k, v: S.filter((s) => s.method === k).reduce((a, s) => a + s.paid, 0) }));
   const dueAdded = S.reduce((a, s) => a + s.due, 0);
@@ -44,14 +47,14 @@ function Reports() {
   return (
     <>
       <PageTitle title="রিপোর্ট" subtitle="তারিখ বেছে নিন" action={
-        <div className="flex items-center gap-2"><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /><span>—</span><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+        <div className="flex flex-wrap items-center gap-2"><Input className="w-auto" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /><span>—</span><Input className="w-auto" type="date" value={to} onChange={(e) => setTo(e.target.value)} /><Button variant="outline" className="no-print" onClick={() => window.print()}><Printer className="h-4 w-4" /> প্রিন্ট</Button></div>
       } />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Stat label={`বিক্রি (${S.length} ইনভয়েস)`} value={taka(revenue)} icon={Banknote} tone="bg-primary text-primary-foreground" />
         <Stat label="মোট লাভ" value={taka(profit)} icon={TrendingUp} tone="bg-accent text-accent-foreground" />
         <Stat label="খরচ" value={taka(exp)} icon={Wallet} />
         <Stat label="নিট লাভ" value={taka(profit - exp)} icon={Receipt} tone={profit - exp >= 0 ? "bg-primary/15 text-primary" : "bg-destructive/10 text-destructive"} />
-        <Stat label="মেয়াদোত্তীর্ণ লোকসান" value={taka(expiredLoss)} icon={PackageX} tone="bg-destructive/10 text-destructive" />
+        <Stat label={`মেয়াদোত্তীর্ণ স্টক${wasted ? ` · নষ্ট ${taka(wasted)}` : ""}`} value={taka(expiredLoss)} icon={PackageX} tone="bg-destructive/10 text-destructive" />
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Panel title="দৈনিক বিক্রি ও লাভ" className="lg:col-span-2">
