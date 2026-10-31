@@ -12,4 +12,4 @@
 - Pharmacy data lives in src/lib/pharmacy-store.ts (browser localStorage store) — why: rebuilt from an uploaded Laravel app without a backend yet; swap to Lovable Cloud when login/multi-device is needed.
 - Sales are multi-item invoices; stock/due changes only through actions in src/lib/pharmacy-store.ts — why: one place enforces stock, expiry and due rules (tested in src/test/pharmacy-store.test.tsx).
 - Medicine stock is counted in pieces; packSize (pieces per strip) is a selling helper only — why: keeps stock math single-unit.
-- Signed-in user's whole PharmacyState is mirrored to Lovable Cloud table pharmacy_data (one JSON row per user) via src/lib/cloud-sync.ts; AuthGate in __root shows login inline — why: keeps existing local store/actions unchanged.
+- Whole PharmacyState is shared per shop in Lovable Cloud table shop_data (one JSON row per shop); ensure_shop() RPC joins invited staff or creates an owner shop; page access per role via canOpen in src/lib/cloud-sync.ts — why: keeps existing local store/actions unchanged.
