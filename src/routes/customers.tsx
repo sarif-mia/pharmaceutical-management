@@ -17,6 +17,8 @@ export const Route = createFileRoute("/customers")({
 function Customers() {
   const st = usePharmacy();
   const [pay, setPay] = useState<Record<string, string>>({});
+  const [q, setQ] = useState("");
+  const has = (...v: string[]) => v.some((x) => (x ?? "").toLowerCase().includes(q.trim().toLowerCase()));
   const totalDue = st.customers.reduce((a, c) => a + customerDue(st, c.id), 0);
 
   return (
@@ -36,8 +38,9 @@ function Customers() {
           <Button type="submit">যোগ করুন</Button>
         </form>
       </Panel>
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম বা মোবাইল দিয়ে খুঁজুন…" className="mb-4" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {st.customers.map((c) => {
+        {st.customers.filter((c) => has(c.name, c.phone, c.address)).map((c) => {
           const due = customerDue(st, c.id);
           const buys = st.sales.filter((s) => s.customerId === c.id);
           return (
