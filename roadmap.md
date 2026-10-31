@@ -14,3 +14,5 @@
 - [x] Cashier shift closing (Z-report)
 - [x] 58mm/80mm receipt size
 - [x] Live sync status icon
+- [x] Damage/expired/lost stock adjustment + supplier return (batch dialog)
+- [x] Purchases mobile cards, POS quick cash buttons, alert bell, printable reports
