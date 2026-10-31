@@ -17,5 +17,5 @@
 - [x] Damage/expired/lost stock adjustment + supplier return (batch dialog)
 - [x] Purchases mobile cards, POS quick cash buttons, alert bell, printable reports
 - [x] ঘাটতি খাতা + WhatsApp বাকি তাগাদা (Phase 1)
-- [ ] Phase 2: রসিদে সেবনবিধি + QR
+- [x] Phase 2: রসিদে সেবনবিধি + QR
 - [ ] Phase 3: স্প্লিট পেমেন্ট (ক্যাশ + বিকাশ)

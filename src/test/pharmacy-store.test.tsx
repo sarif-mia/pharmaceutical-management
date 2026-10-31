@@ -168,11 +168,11 @@ describe("shortage list", () => {
   });
 });
 
-import { actions as AD, getState as GD, makeSeed as SD } from "@/lib/pharmacy-store";
+import { actions as AD, getState as GD } from "@/lib/pharmacy-store";
 describe("dosage", () => {
   it("saves trimmed dosage on the sale item, none when blank", () => {
-    AD.importState(SD());
-    const m = GD().medicines.find((x) => x.stock > 5)!;
+    AD.reset();
+    const m = GD().medicines.find((x) => x.id === "m1")!;
     const r = AD.checkout({ lines: [{ medicineId: m.id, qty: 1, dose: " ১+০+১ " }], discount: 0, paid: m.price, method: "cash", customerId: null });
     expect(typeof r === "object" && r.items[0]!.dose).toBe("১+০+১");
     const r2 = AD.checkout({ lines: [{ medicineId: m.id, qty: 1, dose: "  " }], discount: 0, paid: m.price, method: "cash", customerId: null });
