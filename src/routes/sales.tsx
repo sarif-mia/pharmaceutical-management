@@ -179,7 +179,7 @@ function POS() {
         </Panel>
       </div>
 
-      {!cartOpen && lines.length > 0 && <div className="pos-cart-bar no-print fixed inset-x-4 z-20 lg:hidden"><Button onClick={() => setCartOpen(true)} className="h-12 w-full justify-between"><span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" />কার্ট দেখুন · {lines.length}</span><span>{taka(total)}</span></Button></div>}
+      {!cartOpen && lines.length > 0 && <div className="pos-cart-bar no-print fixed inset-x-3 z-20 lg:hidden"><Button onClick={() => setCartOpen(true)} className="h-10 w-full justify-between rounded-full px-4 text-sm shadow-lg"><span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" />{lines.length}টি আইটেম</span><span className="font-semibold">{taka(total)} →</span></Button></div>}
       <Dialog open={!!done} onOpenChange={(o) => !o && setDone(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle className="no-print">রসিদ</DialogTitle></DialogHeader>
