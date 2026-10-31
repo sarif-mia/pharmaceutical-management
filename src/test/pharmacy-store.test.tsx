@@ -57,7 +57,8 @@ describe("ledger", () => {
 });
 
 import { describe as d2, it as i2, expect as e2, beforeEach as be2 } from "vitest";
-import { actions as A, getState as G, makeSeed as MS, daysFromNow as DF } from "@/lib/pharmacy-store";
+import { actions as A, getState as G, makeSeed as MS } from "@/lib/pharmacy-store";
+const DF = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 d2("batch inventory", () => {
   be2(() => A.importData(MS()));
   i2("purchase adds a new batch and sale takes earliest-expiry batch first", () => {
