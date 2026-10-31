@@ -1,14 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Pill } from "lucide-react";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { startCloudSync } from "@/lib/cloud-sync";
+import { APP_NAME } from "@/lib/meta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { AppSkeleton } from "@/components/shared/AppSkeleton";
+import { BrandMark } from "@/components/shared/BrandMark";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -58,8 +59,8 @@ function Login() {
       <Toaster richColors position="top-right" />
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-lg">
         <div className="mb-5 flex items-center gap-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Pill className="h-5 w-5" /></span>
-          <div><div className="font-display text-xl font-semibold">ফার্মেসি ম্যানেজার</div><div className="text-xs text-muted-foreground">{mode === "in" ? "লগইন করুন" : "নতুন অ্যাকাউন্ট খুলুন"}</div></div>
+          <BrandMark className="h-10 w-10" />
+          <div><div className="font-display text-xl font-semibold">{APP_NAME}</div><div className="text-xs text-muted-foreground">{mode === "in" ? "লগইন করুন" : "নতুন অ্যাকাউন্ট খুলুন"}</div></div>
         </div>
         <form onSubmit={submit} className="space-y-3">
           <Input name="email" type="email" placeholder="ইমেইল" required />

@@ -7,16 +7,10 @@ import { PageTitle, Panel, Field, selectCls, thCls, tdCls, Empty } from "@/compo
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ROLE_LABEL, useShop, type ShopRole } from "@/lib/cloud-sync";
+import { pageHead } from "@/lib/meta";
 
 export const Route = createFileRoute("/staff")({
-  head: () => ({ meta: [
-    { title: "কর্মচারী ও অনুমতি — ফার্মেসি ম্যানেজার" },
-    { name: "description", content: "দোকানের কর্মচারী যোগ করুন এবং মালিক, ম্যানেজার, ক্যাশিয়ার অনুমতি দিন।" },
-    { property: "og:title", content: "কর্মচারী ও অনুমতি" },
-    { property: "og:description", content: "দোকানের কর্মচারী ও তাদের অনুমতি।" },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: pageHead("কর্মচারী ও অনুমতি", "দোকানের কর্মচারী যোগ করুন এবং মালিক, ম্যানেজার, ক্যাশিয়ার অনুমতি দিন।"),
   component: Staff,
 });
 
