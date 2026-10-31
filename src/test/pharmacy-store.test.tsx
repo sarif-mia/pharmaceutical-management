@@ -187,10 +187,10 @@ describe("split payment", () => {
     const before = DC(GS(), TD());
     const m = GS().medicines.find((x) => x.id === "m1")!;
     const total = m.price * 10;
-    const r = AS.checkout({ lines: [{ medicineId: "m1", qty: 10 }], discount: 0, paid: total, method: "bkash", customerId: null, cashPart: 30 });
-    expect(typeof r === "object" && r.cashPart).toBe(30);
+    const r = AS.checkout({ lines: [{ medicineId: "m1", qty: 10 }], discount: 0, paid: total, method: "bkash", customerId: null, cashPart: 5 });
+    expect(typeof r === "object" && r.cashPart).toBe(5);
     const z = DC(GS(), TD());
-    expect(z.byMethod.cash - before.byMethod.cash).toBeCloseTo(30);
-    expect(z.byMethod.bkash - before.byMethod.bkash).toBeCloseTo(total - 30);
+    expect(z.byMethod.cash - before.byMethod.cash).toBeCloseTo(5);
+    expect(z.byMethod.bkash - before.byMethod.bkash).toBeCloseTo(total - 5);
   });
 });
