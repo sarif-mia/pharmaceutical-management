@@ -270,7 +270,8 @@ export const actions = {
         const its = p.items.filter((i) => i.medicineId === m.id);
         if (!its.length) return m;
         const last = its[its.length - 1]!;
-        return { ...m, stock: m.stock + its.reduce((a, i) => a + i.qty, 0), costPrice: last.cost, expiry: last.expiry || m.expiry };
+        const added: Batch[] = its.map((i) => ({ id: uid(), no: i.batchNo || "-", qty: i.qty, expiry: i.expiry || m.expiry, cost: i.cost }));
+        return withBatches({ ...m, costPrice: last.cost }, [...getBatches(m), ...added]);
       }),
     });
     return null;
