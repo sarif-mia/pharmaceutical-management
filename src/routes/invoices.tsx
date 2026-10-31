@@ -32,9 +32,28 @@ function Invoices() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" placeholder="ইনভয়েস নং, ওষুধ বা কাস্টমার…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <Input type="date" className="w-44" value={date} onChange={(e) => setDate(e.target.value)} />
+        <Input type="date" className="w-full sm:w-44" value={date} onChange={(e) => setDate(e.target.value)} />
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="space-y-2 md:hidden">
+        {list.map((x) => (
+          <button key={x.id} type="button" onClick={() => setView(x)} className="w-full rounded-xl border border-border bg-card p-3 text-left active:bg-muted/50">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate font-mono text-sm font-semibold">{x.invoice}</span>
+              <span className="shrink-0 font-semibold">{taka(x.total)}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span className="min-w-0 truncate">{cust(x.customerId)?.name ?? "সাধারণ"} · {x.date} {x.time}</span>
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-secondary px-2 py-0.5 font-semibold text-foreground">{PAYMENT_LABEL[x.method]}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-2 text-xs">
+              <span className="min-w-0 truncate text-muted-foreground">{x.items.map((i) => `${i.name}×${i.qty}`).join(", ")}</span>
+              {x.due > 0 && <span className="shrink-0 font-semibold text-destructive">বাকি {taka(x.due)}</span>}
+            </div>
+          </button>
+        ))}
+        {!list.length && <p className="rounded-xl border border-border bg-card py-8 text-center text-sm text-muted-foreground">কোনো ইনভয়েস নেই</p>}
+      </div>
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
         <table className="w-full text-sm">
           <thead className="bg-muted text-muted-foreground">
             <tr><th className={thCls}>ইনভয়েস</th><th className={thCls}>তারিখ</th><th className={thCls}>কাস্টমার</th><th className={thCls}>আইটেম</th><th className={thCls}>পেমেন্ট</th><th className={thCls}>মোট</th><th className={thCls}>বাকি</th><th className={thCls}></th></tr>
