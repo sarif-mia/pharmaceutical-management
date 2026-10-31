@@ -1,24 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Eye, Printer, Search } from "lucide-react";
+import { Eye, MessageCircle, Printer, Search, Undo2 } from "lucide-react";
+import { toast } from "sonner";
 import { PageTitle, tdCls, thCls } from "@/components/AppShell";
 import { Receipt } from "@/components/Receipt";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
-import { PAYMENT_LABEL, taka, usePharmacy, type Sale } from "@/lib/pharmacy-store";
+import { actions, PAYMENT_LABEL, taka, usePharmacy, type Sale } from "@/lib/pharmacy-store";
 
 export const Route = createFileRoute("/invoices")({
-  head: pageHead("ইনভয়েস", "সব বিক্রির ইনভয়েস খুঁজুন, দেখুন ও আবার প্রিন্ট করুন।"),
+  head: pageHead("ইনভয়েস", "সব বিক্রির ইনভয়েস খুঁজুন, দেখুন, প্রিন্ট, WhatsApp ও ফেরত নিন।"),
   component: Invoices,
 });
 
 function Invoices() {
-  const { sales, customers } = usePharmacy();
+  const { sales, customers, settings } = usePharmacy();
   const [q, setQ] = useState("");
   const [date, setDate] = useState("");
   const [view, setView] = useState<Sale | null>(null);
+  const [ret, setRet] = useState<Sale | null>(null);
   const cust = (id: string | null) => customers.find((c) => c.id === id);
   const s = q.toLowerCase();
   const list = sales.filter((x) => (!date || x.date === date) && (!s || x.invoice.toLowerCase().includes(s) || x.items.some((i) => i.name.toLowerCase().includes(s)) || (cust(x.customerId)?.name ?? "").includes(q)));
@@ -79,9 +81,50 @@ function Invoices() {
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle className="no-print">{view?.invoice}</DialogTitle></DialogHeader>
           {view && <div className="print-area"><Receipt sale={view} /></div>}
-          <Button className="no-print" onClick={() => window.print()}><Printer className="h-4 w-4" /> প্রিন্ট</Button>
+          <div className="no-print grid grid-cols-3 gap-2">
+            <Button onClick={() => window.print()}><Printer className="h-4 w-4" /> প্রিন্ট</Button>
+            <Button variant="outline" onClick={() => view && shareWhatsApp(view, cust(view.customerId)?.phone ?? "", settings.shopName)}><MessageCircle className="h-4 w-4" /> WhatsApp</Button>
+            <Button variant="outline" onClick={() => { setRet(view); setView(null); }}><Undo2 className="h-4 w-4" /> ফেরত</Button>
+          </div>
         </DialogContent>
       </Dialog>
+      <ReturnDialog sale={ret} onClose={() => setRet(null)} />
     </>
+  );
+}
+
+function shareWhatsApp(sale: Sale, phone: string, shop: string) {
+  const lines = sale.items.map((i) => `${i.name} x${i.qty} = ${taka(i.qty * i.price)}`).join("\n");
+  const text = `${shop}\nইনভয়েস: ${sale.invoice} (${sale.date})\n\n${lines}\n\nমোট: ${taka(sale.total)}\nপরিশোধ: ${taka(sale.paid)}${sale.due > 0 ? `\nবাকি: ${taka(sale.due)}` : ""}\nধন্যবাদ!`;
+  let num = phone.replace(/\D/g, "");
+  if (num.startsWith("01")) num = `88${num}`;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`, "_blank");
+}
+
+function ReturnDialog({ sale, onClose }: { sale: Sale | null; onClose: () => void }) {
+  const [qty, setQty] = useState<Record<string, number>>({});
+  const close = () => { setQty({}); onClose(); };
+  return (
+    <Dialog open={!!sale} onOpenChange={(o) => !o && close()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>ওষুধ ফেরত · {sale?.invoice}</DialogTitle></DialogHeader>
+        <div className="space-y-2">
+          {sale?.items.map((i) => (
+            <div key={i.medicineId} className="flex items-center justify-between gap-3 rounded-lg bg-muted px-3 py-2 text-sm">
+              <div className="min-w-0"><p className="truncate font-medium">{i.name}</p><p className="text-xs text-muted-foreground">বিক্রি {i.qty}টি · {taka(i.price)}</p></div>
+              <Input type="number" min={0} max={i.qty} className="w-20" value={qty[i.medicineId] ?? ""} placeholder="0"
+                onChange={(e) => setQty({ ...qty, [i.medicineId]: Math.min(i.qty, Math.max(0, Number(e.target.value) || 0)) })} />
+            </div>
+          ))}
+        </div>
+        <Button onClick={() => {
+          if (!sale) return;
+          const r = actions.returnSale(sale.id, Object.entries(qty).map(([medicineId, q]) => ({ medicineId, qty: q })));
+          if (typeof r === "string") return toast.error(r);
+          toast.success(r.refund > 0 ? `ফেরত হলো · কাস্টমারকে ${taka(r.refund)} ফেরত দিন` : "ফেরত হলো · বাকি থেকে কেটে নেওয়া হয়েছে");
+          close();
+        }}>ফেরত নিশ্চিত করুন</Button>
+      </DialogContent>
+    </Dialog>
   );
 }

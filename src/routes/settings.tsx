@@ -1,11 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, RotateCcw, Upload } from "lucide-react";
+import { Download, FileSpreadsheet, RotateCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Field, PageTitle, Panel } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
 import { actions, getState, today, usePharmacy } from "@/lib/pharmacy-store";
+
+function csv(name: string, rows: (string | number)[][]) {
+  const body = rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const url = URL.createObjectURL(new Blob(["\uFEFF" + body], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
 
 export const Route = createFileRoute("/settings")({
   head: pageHead("সেটিংস", "দোকানের নাম, লাইসেন্স, সতর্কতার নিয়ম এবং ডেটা ব্যাকআপ।"),
@@ -58,6 +66,17 @@ function SettingsPage() {
               </label>
             </Button>
             <Button variant="destructive" onClick={() => { if (confirm("সব তথ্য মুছে ডেমো ডেটা ফিরে আসবে। নিশ্চিত?")) { actions.reset(); toast.success("রিসেট হলো"); } }}><RotateCcw className="h-4 w-4" /> রিসেট</Button>
+          </div>
+          <p className="mb-2 mt-5 text-sm font-medium">এক্সেল (CSV) ফাইল</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              const st = getState();
+              csv(`medicines-${today()}.csv`, [["নাম", "জেনেরিক", "শক্তি", "স্টক", "ক্রয়মূল্য", "বিক্রয়মূল্য", "মেয়াদ"], ...st.medicines.map((m) => [m.name, m.generic, m.strength, m.stock, m.costPrice, m.price, m.expiry])]);
+            }}><FileSpreadsheet className="h-4 w-4" /> ওষুধ স্টক</Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const st = getState();
+              csv(`sales-${today()}.csv`, [["ইনভয়েস", "তারিখ", "সময়", "আইটেম", "মোট", "পরিশোধ", "বাকি", "পেমেন্ট"], ...st.sales.map((s) => [s.invoice, s.date, s.time, s.items.map((i) => `${i.name} x${i.qty}`).join("; "), s.total, s.paid, s.due, s.method])]);
+            }}><FileSpreadsheet className="h-4 w-4" /> বিক্রি</Button>
           </div>
         </Panel>
       </div>

@@ -293,6 +293,40 @@ export const actions = {
     return null;
   },
   addPayment: (p: Omit<Payment, "id" | "date">) => patch({ payments: [{ ...p, id: uid(), date: today() }, ...cur().payments] }),
+  /** Customer returns pieces from a sale: stock comes back, bill shrinks, due is cut first, rest is cash refund. */
+  returnSale: (saleId: string, lines: CartLine[]): string | { refund: number } => {
+    const s = cur();
+    const sale = s.sales.find((x) => x.id === saleId);
+    if (!sale) return "ইনভয়েস পাওয়া যায়নি";
+    const ls = lines.filter((l) => l.qty > 0);
+    if (!ls.length) return "ফেরতের পরিমাণ দিন";
+    const items = sale.items.map((i) => ({ ...i }));
+    let amount = 0;
+    for (const l of ls) {
+      const it = items.find((i) => i.medicineId === l.medicineId);
+      if (!it || l.qty > it.qty) return "বিক্রির চেয়ে বেশি ফেরত নেওয়া যাবে না";
+      it.qty -= l.qty;
+      amount += l.qty * it.price;
+    }
+    const subtotal = r2(items.reduce((a, i) => a + i.qty * i.price, 0));
+    const discount = Math.min(sale.discount, subtotal);
+    const total = r2(subtotal - discount);
+    const credit = r2(sale.total - total);
+    const due = r2(Math.max(0, sale.due - credit));
+    const refund = r2(credit - (sale.due - due));
+    const next: Sale = { ...sale, items: items.filter((i) => i.qty > 0), subtotal, discount, total, due, paid: r2(total - due) };
+    patch({
+      sales: s.sales.map((x) => (x.id === saleId ? next : x)),
+      medicines: s.medicines.map((m) => {
+        const l = ls.find((x) => x.medicineId === m.id);
+        if (!l) return m;
+        const it = sale.items.find((i) => i.medicineId === m.id)!;
+        return withBatches(m, [...getBatches(m), { id: uid(), no: `ফেরত ${sale.invoice}`, qty: l.qty, expiry: m.expiry, cost: it.cost }]);
+      }),
+    });
+    void amount;
+    return { refund };
+  },
   importData: (data: PharmacyState) => set({ ...getSeed(), ...data }),
   reset: () => set(makeSeed()),
 };
