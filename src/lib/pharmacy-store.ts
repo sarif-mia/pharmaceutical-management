@@ -53,6 +53,7 @@ export type Sale = {
   paid: number;
   due: number;
   method: PaymentMethod;
+  trxId?: string;
   customerId: string | null;
   date: string;
   time: string;
@@ -189,7 +190,7 @@ export function usePharmacy() {
 export const getState = cur;
 
 export type CartLine = { medicineId: string; qty: number };
-export type CheckoutInput = { lines: CartLine[]; discount: number; paid: number; method: PaymentMethod; customerId: string | null };
+export type CheckoutInput = { lines: CartLine[]; discount: number; paid: number; method: PaymentMethod; customerId: string | null; trxId?: string };
 
 export const actions = {
   addCategory: (name: string) => patch({ categories: [...cur().categories, { id: uid(), name }] }),
@@ -259,6 +260,7 @@ export const actions = {
       invoice: `INV-${1001 + s.sales.length}`,
       items, subtotal, discount, total, paid, due,
       method: input.method,
+      ...(input.trxId?.trim() ? { trxId: input.trxId.trim() } : {}),
       customerId: input.customerId,
       date: today(),
       time: now.toTimeString().slice(0, 5),
