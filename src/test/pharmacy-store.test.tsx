@@ -150,3 +150,20 @@ d2("stock adjustment", () => {
     e2(sd(G(), "s2")).toBeCloseTo(before - 10 * b.cost);
   });
 });
+
+import { shortageList, makeSeed as seedS } from "@/lib/pharmacy-store";
+describe("shortage list", () => {
+  it("lists only low stock, grouped by company, rounded up to whole strips", () => {
+    const st = seedS();
+    st.settings.lowStock = 20;
+    st.medicines = [
+      { ...st.medicines[0], id: "a", company: "Square", stock: 5, reorder: 10, packSize: 10, batches: undefined },
+      { ...st.medicines[0], id: "b", company: "Square", stock: 500, reorder: 10, batches: undefined },
+    ];
+    const g = shortageList(st);
+    expect(g).toHaveLength(1);
+    expect(g[0].company).toBe("Square");
+    expect(g[0].items.map((i) => i.m.id)).toEqual(["a"]);
+    expect(g[0].items[0].suggest).toBe(40); // target 40 - 5 = 35 → 4 strips of 10
+  });
+});
