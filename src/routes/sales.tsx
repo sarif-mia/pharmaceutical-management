@@ -76,7 +76,7 @@ function POS() {
   }, [medicines]);
 
   const checkout = () => {
-    const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null, trxId: method === "cash" ? undefined : trxId });
+    const r = actions.checkout({ lines: cart, discount, paid: Math.min(paidNum, total), method, customerId: customerId || null, ...(method !== "cash" && trxId ? { trxId } : {}) });
     if (typeof r === "string") return void toast.error(r);
     toast.success(`বিক্রি সম্পন্ন — ${taka(r.total)}`);
     setDone(r);
