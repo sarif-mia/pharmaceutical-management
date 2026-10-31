@@ -13,4 +13,4 @@
 - [x] Customer / supplier search
 - [x] Cashier shift closing (Z-report)
 - [x] 58mm/80mm receipt size
-- [ ] Live sync status icon
+- [x] Live sync status icon
