@@ -120,7 +120,7 @@ function ReturnDialog({ sale, onClose }: { sale: Sale | null; onClose: () => voi
         <Button onClick={() => {
           if (!sale) return;
           const r = actions.returnSale(sale.id, Object.entries(qty).map(([medicineId, q]) => ({ medicineId, qty: q })));
-          if (typeof r === "string") return toast.error(r);
+          if (typeof r === "string") { toast.error(r); return; }
           toast.success(r.refund > 0 ? `ফেরত হলো · কাস্টমারকে ${taka(r.refund)} ফেরত দিন` : "ফেরত হলো · বাকি থেকে কেটে নেওয়া হয়েছে");
           close();
         }}>ফেরত নিশ্চিত করুন</Button>
