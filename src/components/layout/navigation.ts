@@ -1,4 +1,4 @@
-import { LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, UserCog, Calculator } from "lucide-react";
+import { LayoutDashboard, Pill, ShoppingCart, Truck, Tags, Receipt, PackagePlus, Users, Wallet, BarChart3, Settings, UserCog, Calculator, ClipboardList } from "lucide-react";
 
 export const navigationGroups = [
   { title: "কাউন্টার ও বিক্রি", items: [
@@ -10,6 +10,7 @@ export const navigationGroups = [
   { title: "স্টক ও সাপ্লাই", items: [
     { to: "/medicines", label: "ওষুধ ও ব্যাচ স্টক", shortLabel: "স্টক", icon: Pill },
     { to: "/purchases", label: "ক্রয় / চালান", shortLabel: "ক্রয়", icon: PackagePlus },
+    { to: "/shortage", label: "ঘাটতি খাতা", shortLabel: "ঘাটতি", icon: ClipboardList },
     { to: "/categories", label: "ক্যাটাগরি", shortLabel: "ক্যাটাগরি", icon: Tags },
   ] },
   { title: "খাতা ও হিসাব", items: [
