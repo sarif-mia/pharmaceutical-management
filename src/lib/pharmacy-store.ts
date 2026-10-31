@@ -412,3 +412,17 @@ export function dayClosing(st: PharmacyState, date: string) {
     expectedCash: r2(byMethod.cash + collected - expense),
   };
 }
+
+/** Re-order list: low/out-of-stock medicines grouped by company, with a suggested order qty in pieces. */
+export function shortageList(st: PharmacyState) {
+  const groups = new Map<string, { m: Medicine; suggest: number }[]>();
+  for (const m of st.medicines) {
+    if (!isLow(m, st.settings)) continue;
+    const target = Math.max(m.reorder, st.settings.lowStock) * 2;
+    const pack = Math.max(m.packSize ?? 1, 1);
+    const suggest = Math.max(Math.ceil((target - m.stock) / pack) * pack, pack);
+    const key = m.company?.trim() || "অন্যান্য";
+    groups.set(key, [...(groups.get(key) ?? []), { m, suggest }]);
+  }
+  return [...groups.entries()].map(([company, items]) => ({ company, items })).sort((a, b) => a.company.localeCompare(b.company));
+}
