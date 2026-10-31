@@ -157,8 +157,8 @@ describe("shortage list", () => {
     const st = seedS();
     st.settings.lowStock = 20;
     st.medicines = [
-      { ...st.medicines[0]!, id: "a", company: "Square", stock: 5, reorder: 10, packSize: 10, batches: undefined },
-      { ...st.medicines[0]!, id: "b", company: "Square", stock: 500, reorder: 10, batches: undefined },
+      { ...st.medicines[0]!, id: "a", company: "Square", stock: 5, reorder: 10, packSize: 10, batches: [] },
+      { ...st.medicines[0]!, id: "b", company: "Square", stock: 500, reorder: 10, batches: [] },
     ];
     const g = shortageList(st);
     expect(g).toHaveLength(1);
