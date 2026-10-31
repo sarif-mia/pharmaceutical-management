@@ -9,3 +9,7 @@
 - [x] Skeleton loading and desktop/mobile verification
 - [x] Sales return, WhatsApp receipt, CSV export
 - [x] Camera barcode scanner in POS
+- [x] MFS TrxID + percent discount in POS
+- [x] Customer / supplier search
+- [ ] Cashier shift closing (Z-report)
+- [ ] 58mm/80mm receipt size + sync status icon
