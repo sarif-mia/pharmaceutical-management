@@ -11,5 +11,6 @@
 - [x] Camera barcode scanner in POS
 - [x] MFS TrxID + percent discount in POS
 - [x] Customer / supplier search
-- [ ] Cashier shift closing (Z-report)
-- [ ] 58mm/80mm receipt size + sync status icon
+- [x] Cashier shift closing (Z-report)
+- [x] 58mm/80mm receipt size
+- [ ] Live sync status icon

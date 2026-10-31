@@ -371,3 +371,20 @@ export const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => { listeners.delete(l); };
 };
+
+/** Day-end (Z) report. Customer due collections are counted as cash. */
+export function dayClosing(st: PharmacyState, date: string) {
+  const sales = st.sales.filter((s) => s.date === date);
+  const byMethod: Record<PaymentMethod, number> = { cash: 0, bkash: 0, nagad: 0, card: 0 };
+  for (const s of sales) byMethod[s.method] = r2(byMethod[s.method] + s.paid);
+  const collected = r2(st.payments.filter((p) => p.kind === "customer" && p.date === date).reduce((a, p) => a + p.amount, 0));
+  const expense = r2(st.expenses.filter((e) => e.date === date).reduce((a, e) => a + e.amount, 0));
+  return {
+    count: sales.length,
+    total: r2(sales.reduce((a, s) => a + s.total, 0)),
+    discount: r2(sales.reduce((a, s) => a + s.discount, 0)),
+    due: r2(sales.reduce((a, s) => a + s.due, 0)),
+    byMethod, collected, expense,
+    expectedCash: r2(byMethod.cash + collected - expense),
+  };
+}
