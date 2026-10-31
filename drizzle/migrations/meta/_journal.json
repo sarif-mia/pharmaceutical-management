@@ -15,6 +15,13 @@
       "when": 1793423491590,
       "tag": "0001_shop_staff_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793423691611,
+      "tag": "0002_shop_data_versioned_save",
+      "breakpoints": true
     }
   ]
 }

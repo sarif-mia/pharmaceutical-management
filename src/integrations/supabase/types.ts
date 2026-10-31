@@ -37,16 +37,19 @@ export type Database = {
           data: Json
           shop_id: string
           updated_at: string
+          version: number
         }
         Insert: {
           data?: Json
           shop_id: string
           updated_at?: string
+          version?: number
         }
         Update: {
           data?: Json
           shop_id?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -154,6 +157,10 @@ export type Database = {
           role: Database["public"]["Enums"]["shop_role"]
           shop_id: string
         }[]
+      }
+      save_shop_data: {
+        Args: { _data: Json; _shop: string; _version: number }
+        Returns: number
       }
       shop_role_of: {
         Args: { _shop: string; _user: string }
