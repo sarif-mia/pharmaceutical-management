@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
@@ -10,7 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { AppShell } from "@/components/AppShell";
+import { PharmacyLayout } from "@/components/layout/PharmacyLayout";
+import { AppSkeleton } from "@/components/shared/AppSkeleton";
 import { AuthGate } from "@/components/AuthGate";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "শেফা ফার্মেসি — ম্যানেজমেন্ট" },
       { name: "description", content: "ওষুধের স্টক, বিক্রি ও সাপ্লায়ার এক জায়গায় সামলান।" },
       { property: "og:type", content: "website" },
@@ -101,6 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
+  pendingComponent: AppSkeleton,
 });
 
 function RootShell({ children }: { children: ReactNode }) {
@@ -123,7 +124,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AuthGate><AppShell /></AuthGate>
+      <AuthGate><PharmacyLayout /></AuthGate>
     </QueryClientProvider>
   );
 }
