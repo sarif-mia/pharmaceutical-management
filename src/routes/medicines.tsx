@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
-import { actions, expiresSoon, FORMS, isExpired, isLow, taka, usePharmacy, type DosageForm, type Medicine } from "@/lib/pharmacy-store";
+import { actions, expiresSoon, FORMS, isExpired, getBatches, isLow, taka, usePharmacy, type DosageForm, type Medicine } from "@/lib/pharmacy-store";
 
 export const Route = createFileRoute("/medicines")({
   head: pageHead("ওষুধ ও স্টক", "ব্র্যান্ড, জেনেরিক, কোম্পানি, র‍্যাক, দাম, স্টক ও মেয়াদ এক জায়গায়।"),
@@ -83,6 +83,7 @@ function Medicines() {
                 <td className={tdCls}><span className={isLow(m, settings) ? "font-bold text-destructive" : "font-semibold"}>{m.stock}</span></td>
                 <td className={tdCls}>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isExpired(m) ? "bg-destructive/10 text-destructive" : expiresSoon(m, settings.expiryDays) ? "bg-accent/30 text-accent-foreground" : "bg-secondary text-secondary-foreground"}`}>{m.expiry}</span>
+                  {getBatches(m).length > 1 && <div className="mt-1 text-xs text-muted-foreground" title={getBatches(m).map((b) => `${b.no}: ${b.qty} পিস · ${b.expiry}`).join("\n")}>{getBatches(m).length}টি ব্যাচ</div>}
                 </td>
                 <td className={`${tdCls} whitespace-nowrap text-right`}>
                   <Button size="icon" variant="ghost" aria-label="এডিট" onClick={() => setEdit(m)}><Pencil className="h-4 w-4" /></Button>

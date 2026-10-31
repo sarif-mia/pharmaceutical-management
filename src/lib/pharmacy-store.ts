@@ -20,8 +20,25 @@ export type Medicine = {
   stock: number;
   reorder: number;
   packSize?: number; // pieces per strip/box (1 = sold singly)
-  expiry: string; // YYYY-MM-DD
+  expiry: string; // YYYY-MM-DD — earliest expiry among stocked batches
+  batches?: Batch[]; // stock split by batch; sum(qty) === stock
 };
+export type Batch = { id: string; no: string; qty: number; expiry: string; cost: number };
+
+/** Batches of a medicine (legacy medicines without batches become one batch). */
+export function getBatches(m: Medicine): Batch[] {
+  if (m.batches && m.batches.length) return m.batches;
+  return m.stock > 0 ? [{ id: "b0", no: "-", qty: m.stock, expiry: m.expiry, cost: m.costPrice }] : [];
+}
+/** Pieces that can be sold right now (non-expired batches). */
+export function sellableStock(m: Medicine): number {
+  const t = new Date().toISOString().slice(0, 10);
+  return getBatches(m).filter((b) => b.expiry >= t).reduce((a, b) => a + b.qty, 0);
+}
+function withBatches(m: Medicine, batches: Batch[]): Medicine {
+  const live = batches.filter((b) => b.qty > 0).sort((a, b) => a.expiry.localeCompare(b.expiry));
+  return { ...m, batches: live, stock: live.reduce((a, b) => a + b.qty, 0), expiry: live[0]?.expiry ?? m.expiry };
+}
 export type Customer = { id: string; name: string; phone: string; address: string };
 export type PaymentMethod = "cash" | "bkash" | "nagad" | "card";
 export const PAYMENT_LABEL: Record<PaymentMethod, string> = { cash: "ক্যাশ", bkash: "বিকাশ", nagad: "নগদ", card: "কার্ড" };
@@ -40,7 +57,7 @@ export type Sale = {
   date: string;
   time: string;
 };
-export type PurchaseItem = { medicineId: string; qty: number; cost: number; expiry: string };
+export type PurchaseItem = { medicineId: string; qty: number; cost: number; expiry: string; batchNo?: string };
 export type Purchase = { id: string; supplierId: string; items: PurchaseItem[]; total: number; paid: number; date: string; note: string };
 export type Payment = { id: string; kind: "customer" | "supplier"; partyId: string; amount: number; date: string };
 export type Expense = { id: string; title: string; type: string; amount: number; date: string };
@@ -187,8 +204,13 @@ export const actions = {
   removeCustomer: (id: string) => patch({ customers: cur().customers.filter((c) => c.id !== id) }),
   saveMedicine: (m: Omit<Medicine, "id"> & { id?: string | undefined }) => {
     const s = cur();
-    if (m.id) patch({ medicines: s.medicines.map((x) => (x.id === m.id ? ({ ...m, id: m.id } as Medicine) : x)) });
-    else patch({ medicines: [...s.medicines, { ...m, id: uid() }] });
+    const fix = (x: Medicine, old?: Medicine): Medicine => {
+      // keep batches when stock & expiry were not edited by hand; otherwise reset to one batch
+      if (old && old.batches?.length && old.stock === x.stock && old.expiry === x.expiry) return { ...x, batches: old.batches };
+      return { ...x, batches: x.stock > 0 ? [{ id: uid(), no: "-", qty: x.stock, expiry: x.expiry, cost: x.costPrice }] : [] };
+    };
+    if (m.id) patch({ medicines: s.medicines.map((x) => (x.id === m.id ? fix({ ...m, id: m.id } as Medicine, x) : x)) });
+    else patch({ medicines: [...s.medicines, fix({ ...m, id: uid() } as Medicine)] });
   },
   removeMedicine: (id: string) => patch({ medicines: cur().medicines.filter((m) => m.id !== id) }),
   addExpense: (e: Omit<Expense, "id">) => patch({ expenses: [{ ...e, id: uid() }, ...cur().expenses] }),
@@ -204,9 +226,26 @@ export const actions = {
       const m = s.medicines.find((x) => x.id === l.medicineId);
       if (!m) return "ওষুধ পাওয়া যায়নি";
       if (l.qty <= 0) return "পরিমাণ সঠিক নয়";
-      if (isExpired(m)) return `${m.name} এর মেয়াদ শেষ`;
-      if (m.stock < l.qty) return `${m.name} স্টকে মাত্র ${m.stock}টি আছে`;
+      const can = sellableStock(m);
+      if (can === 0 && m.stock > 0) return `${m.name} এর মেয়াদ শেষ`;
+      if (can < l.qty) return `${m.name} স্টকে মাত্র ${can}টি আছে`;
       items.push({ medicineId: m.id, name: `${m.name} ${m.strength}`.trim(), qty: l.qty, price: m.price, cost: m.costPrice });
+    }
+    // FEFO: take from the earliest-expiring non-expired batch first
+    const t = today();
+    const nextMeds = new Map<string, Medicine>();
+    for (const l of input.lines) {
+      const m = nextMeds.get(l.medicineId) ?? s.medicines.find((x) => x.id === l.medicineId)!;
+      let left = l.qty, costSum = 0;
+      const bs = getBatches(m).map((b) => ({ ...b })).sort((a, b) => a.expiry.localeCompare(b.expiry));
+      for (const b of bs) {
+        if (left <= 0 || b.expiry < t) continue;
+        const take = Math.min(b.qty, left);
+        b.qty -= take; left -= take; costSum += take * b.cost;
+      }
+      const item = items.find((i) => i.medicineId === m.id && i.qty === l.qty);
+      if (item) item.cost = r2(costSum / l.qty);
+      nextMeds.set(m.id, withBatches(m, bs));
     }
     const subtotal = r2(items.reduce((a, i) => a + i.qty * i.price, 0));
     const discount = Math.min(Math.max(0, input.discount), subtotal);
@@ -226,8 +265,7 @@ export const actions = {
     };
     patch({
       medicines: s.medicines.map((m) => {
-        const l = input.lines.find((x) => x.medicineId === m.id);
-        return l ? { ...m, stock: m.stock - l.qty } : m;
+        return nextMeds.get(m.id) ?? m;
       }),
       sales: [sale, ...s.sales],
     });
@@ -248,7 +286,8 @@ export const actions = {
         const its = p.items.filter((i) => i.medicineId === m.id);
         if (!its.length) return m;
         const last = its[its.length - 1]!;
-        return { ...m, stock: m.stock + its.reduce((a, i) => a + i.qty, 0), costPrice: last.cost, expiry: last.expiry || m.expiry };
+        const added: Batch[] = its.map((i) => ({ id: uid(), no: i.batchNo || "-", qty: i.qty, expiry: i.expiry || m.expiry, cost: i.cost }));
+        return withBatches({ ...m, costPrice: last.cost }, [...getBatches(m), ...added]);
       }),
     });
     return null;

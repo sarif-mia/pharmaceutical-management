@@ -55,3 +55,29 @@ describe("ledger", () => {
     expect(rows.at(-1)!.balance).toBe(150);
   });
 });
+
+import { describe as d2, it as i2, expect as e2, beforeEach as be2 } from "vitest";
+import { actions as A, getState as G, makeSeed as MS } from "@/lib/pharmacy-store";
+const DF = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+d2("batch inventory", () => {
+  be2(() => A.importData(MS()));
+  i2("purchase adds a new batch and sale takes earliest-expiry batch first", () => {
+    const m = G().medicines[0]!;
+    const before = m.stock;
+    A.addPurchase({ supplierId: "s1", items: [{ medicineId: m.id, qty: 5, cost: 1, expiry: DF(900), batchNo: "NEW" }], paid: 0, date: DF(0), note: "" });
+    const after = G().medicines.find((x) => x.id === m.id)!;
+    e2(after.stock).toBe(before + 5);
+    e2(after.batches!.length).toBe(2);
+    A.sell(m.id, before);
+    const sold = G().medicines.find((x) => x.id === m.id)!;
+    e2(sold.stock).toBe(5);
+    e2(sold.batches![0]!.no).toBe("NEW");
+  });
+  i2("expired batch is not sold even if a newer one has stock", () => {
+    const m = G().medicines[0]!;
+    A.saveMedicine({ ...m, stock: 10, expiry: DF(-1) });
+    A.addPurchase({ supplierId: "s1", items: [{ medicineId: m.id, qty: 3, cost: 1, expiry: DF(300) }], paid: 0, date: DF(0), note: "" });
+    e2(A.sell(m.id, 4)).toContain("3");
+    e2(A.sell(m.id, 3)).toBeNull();
+  });
+});

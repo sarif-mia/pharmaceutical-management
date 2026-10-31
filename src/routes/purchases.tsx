@@ -19,7 +19,7 @@ function Purchases() {
   const [items, setItems] = useState<PurchaseItem[]>([]);
   const [paid, setPaid] = useState(0);
   const [note, setNote] = useState("");
-  const [row, setRow] = useState({ medicineId: "", qty: 10, cost: 0, expiry: daysFromNow(365) });
+  const [row, setRow] = useState({ medicineId: "", qty: 10, cost: 0, expiry: daysFromNow(365), batchNo: "" });
   const total = items.reduce((a, i) => a + i.qty * i.cost, 0);
   const mName = (id: string) => { const m = medicines.find((x) => x.id === id); return m ? `${m.name} ${m.strength}` : "—"; };
   const sName = (id: string) => suppliers.find((s) => s.id === id)?.company ?? "—";
@@ -34,7 +34,7 @@ function Purchases() {
           <Field label="চালান নং / নোট"><Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="চালান #" /></Field>
           <Field label="এখন পরিশোধ (৳)"><Input type="number" min={0} value={paid || ""} onChange={(e) => setPaid(Number(e.target.value) || 0)} /></Field>
         </div>
-        <div className="grid gap-3 rounded-xl bg-muted p-3 md:grid-cols-[2fr_1fr_1fr_1fr_auto] md:items-end">
+        <div className="grid gap-3 rounded-xl bg-muted p-3 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] md:items-end">
           <Field label="ওষুধ">
             <select className={selectCls} value={row.medicineId} onChange={(e) => { const m = medicines.find((x) => x.id === e.target.value); setRow({ ...row, medicineId: e.target.value, cost: m?.costPrice ?? 0 }); }}>
               <option value="">বেছে নিন…</option>
@@ -43,15 +43,16 @@ function Purchases() {
           </Field>
           <Field label="পরিমাণ"><Input type="number" min={1} value={row.qty} onChange={(e) => setRow({ ...row, qty: Number(e.target.value) })} /></Field>
           <Field label="প্রতি পিস দাম"><Input type="number" step="0.01" min={0} value={row.cost} onChange={(e) => setRow({ ...row, cost: Number(e.target.value) })} /></Field>
+          <Field label="ব্যাচ নং"><Input value={row.batchNo} placeholder="B-123" onChange={(e) => setRow({ ...row, batchNo: e.target.value })} /></Field>
           <Field label="মেয়াদ"><Input type="date" value={row.expiry} onChange={(e) => setRow({ ...row, expiry: e.target.value })} /></Field>
-          <Button onClick={() => { if (!row.medicineId || row.qty <= 0) return void toast.error("ওষুধ ও পরিমাণ দিন"); setItems([...items, row]); setRow({ ...row, medicineId: "", qty: 10 }); }}><Plus className="h-4 w-4" /> যোগ</Button>
+          <Button onClick={() => { if (!row.medicineId || row.qty <= 0) return void toast.error("ওষুধ ও পরিমাণ দিন"); setItems([...items, row]); setRow({ ...row, medicineId: "", qty: 10, batchNo: "" }); }}><Plus className="h-4 w-4" /> যোগ</Button>
         </div>
         {items.length > 0 && (
           <ul className="mt-4 divide-y divide-border text-sm">
             {items.map((i, k) => (
               <li key={k} className="flex items-center justify-between py-2">
                 <span className="font-medium">{mName(i.medicineId)}</span>
-                <span className="text-muted-foreground">{i.qty} × {taka(i.cost)} · মেয়াদ {i.expiry}</span>
+                <span className="text-muted-foreground">{i.qty} × {taka(i.cost)} · {i.batchNo ? `ব্যাচ ${i.batchNo} · ` : ""}মেয়াদ {i.expiry}</span>
                 <span className="flex items-center gap-2 font-semibold">{taka(i.qty * i.cost)}<Button size="icon" variant="ghost" onClick={() => setItems(items.filter((_, j) => j !== k))}><Trash2 className="h-4 w-4 text-destructive" /></Button></span>
               </li>
             ))}
