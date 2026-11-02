@@ -535,6 +535,61 @@ export const actions = {
     else patch({ medicines: [...s.medicines, fix({ ...m, id: uid() } as Medicine)] });
   },
   removeMedicine: (id: string) => patch({ medicines: cur().medicines.filter((m) => m.id !== id) }),
+  /** Bulk add from CSV rows. Same name+strength updates prices and adds stock as a new batch. */
+  importMedicines: (rows: ImportRow[]) => {
+    const s = cur();
+    const list = [...s.medicines];
+    let added = 0;
+    let updated = 0;
+    const key = (n: string, st: string) => `${n}|${st}`.toLowerCase().replace(/\s+/g, "");
+    for (const r of rows) {
+      const i = list.findIndex((m) => key(m.name, m.strength) === key(r.name, r.strength));
+      const batch =
+        r.stock > 0
+          ? [{ id: uid(), no: r.batchNo || "-", qty: r.stock, expiry: r.expiry, cost: r.costPrice }]
+          : [];
+      if (i >= 0) {
+        const m = list[i]!;
+        list[i] = withBatches(
+          {
+            ...m,
+            costPrice: r.costPrice || m.costPrice,
+            price: r.price || m.price,
+            barcode: r.barcode || m.barcode,
+          },
+          [...getBatches(m), ...batch],
+        );
+        updated++;
+      } else {
+        list.push(
+          withBatches(
+            {
+              id: uid(),
+              name: r.name,
+              generic: r.generic,
+              form: r.form,
+              strength: r.strength,
+              company: r.company,
+              rack: r.rack,
+              barcode: r.barcode,
+              categoryId: "",
+              supplierId: "",
+              costPrice: r.costPrice,
+              price: r.price,
+              stock: 0,
+              reorder: r.reorder,
+              packSize: r.packSize,
+              expiry: r.expiry,
+            },
+            batch,
+          ),
+        );
+        added++;
+      }
+    }
+    patch({ medicines: list });
+    return { added, updated };
+  },
   addExpense: (e: Omit<Expense, "id">) =>
     patch({ expenses: [{ ...e, id: uid() }, ...cur().expenses] }),
   removeExpense: (id: string) => patch({ expenses: cur().expenses.filter((e) => e.id !== id) }),
