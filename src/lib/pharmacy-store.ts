@@ -941,3 +941,141 @@ export function paidBy(s: Sale): Partial<Record<PaymentMethod, number>> {
   if (s.method !== "cash" && s.paid - cash > 0) out[s.method] = r2(s.paid - cash);
   return out;
 }
+
+export type ImportRow = {
+  name: string;
+  generic: string;
+  form: DosageForm;
+  strength: string;
+  company: string;
+  rack: string;
+  barcode: string;
+  costPrice: number;
+  price: number;
+  stock: number;
+  reorder: number;
+  packSize: number;
+  expiry: string;
+  batchNo: string;
+};
+
+function splitCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let f = "";
+  let q = false;
+  const t = text.replace(/^\uFEFF/, "");
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i]!;
+    if (q) {
+      if (c === '"' && t[i + 1] === '"') (f += '"'), i++;
+      else if (c === '"') q = false;
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") row.push(f), (f = "");
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && t[i + 1] === "\n") i++;
+      row.push(f), rows.push(row), (row = []), (f = "");
+    } else f += c;
+  }
+  if (f || row.length) row.push(f), rows.push(row);
+  return rows.filter((r) => r.some((x) => x.trim()));
+}
+
+const COLS: Record<keyof ImportRow, string[]> = {
+  name: ["name", "নাম", "brand", "ব্র্যান্ড"],
+  generic: ["generic", "জেনেরিক"],
+  form: ["form", "ধরন", "type"],
+  strength: ["strength", "শক্তি", "power"],
+  company: ["company", "কোম্পানি"],
+  rack: ["rack", "র‍্যাক", "রেক"],
+  barcode: ["barcode", "বারকোড"],
+  costPrice: ["cost", "costprice", "ক্রয়মূল্য", "কেনা"],
+  price: ["price", "mrp", "বিক্রয়মূল্য", "দাম"],
+  stock: ["stock", "qty", "স্টক", "পরিমাণ"],
+  reorder: ["reorder", "রিঅর্ডার"],
+  packSize: ["packsize", "pack", "পাতা"],
+  expiry: ["expiry", "মেয়াদ", "exp"],
+  batchNo: ["batch", "batchno", "ব্যাচ"],
+};
+const BN = "০১২৩৪৫৬৭৮৯";
+const num = (s = "") =>
+  Number(s.replace(/[০-৯]/g, (d) => String(BN.indexOf(d))).replace(/[^\d.]/g, "")) || 0;
+function normDate(s = ""): string {
+  const v = s.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  let m = v.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+  if (m) return `${m[3]}-${m[2]!.padStart(2, "0")}-${m[1]!.padStart(2, "0")}`;
+  m = v.match(/^(\d{1,2})[/.-](\d{4})$/);
+  if (m) {
+    const last = new Date(Number(m[2]), Number(m[1]), 0).getDate();
+    return `${m[2]}-${m[1]!.padStart(2, "0")}-${last}`;
+  }
+  return "";
+}
+
+/** Parse a medicine CSV (Bangla or English headers). Returns valid rows and per-line errors. */
+export function parseMedicineCsv(text: string): { rows: ImportRow[]; errors: string[] } {
+  const all = splitCsv(text);
+  const head = (all[0] ?? []).map((h) => h.trim().toLowerCase().replace(/[\s_]/g, ""));
+  const idx = {} as Record<keyof ImportRow, number>;
+  (Object.keys(COLS) as (keyof ImportRow)[]).forEach((k) => {
+    idx[k] = head.findIndex((h) => COLS[k].includes(h));
+  });
+  if (idx.name < 0) return { rows: [], errors: ["প্রথম লাইনে 'নাম' (name) কলাম নেই"] };
+  const rows: ImportRow[] = [];
+  const errors: string[] = [];
+  all.slice(1).forEach((r, n) => {
+    const g = (k: keyof ImportRow) => (idx[k] >= 0 ? (r[idx[k]] ?? "").trim() : "");
+    const name = g("name");
+    if (!name) return errors.push(`লাইন ${n + 2}: নাম নেই`);
+    const price = num(g("price"));
+    if (!price) return errors.push(`লাইন ${n + 2}: ${name} — বিক্রয়মূল্য নেই`);
+    const stock = Math.floor(num(g("stock")));
+    let expiry = normDate(g("expiry"));
+    if (!expiry && stock > 0) return errors.push(`লাইন ${n + 2}: ${name} — মেয়াদের তারিখ ভুল`);
+    if (!expiry) expiry = daysFromNow(365);
+    const formRaw = g("form").toLowerCase();
+    const form = FORMS.find((f) => f.toLowerCase() === formRaw) ?? "Tablet";
+    rows.push({
+      name,
+      generic: g("generic"),
+      form,
+      strength: g("strength"),
+      company: g("company"),
+      rack: g("rack"),
+      barcode: g("barcode"),
+      costPrice: num(g("costPrice")),
+      price,
+      stock,
+      reorder: Math.floor(num(g("reorder"))) || 10,
+      packSize: Math.max(1, Math.floor(num(g("packSize"))) || 1),
+      expiry,
+      batchNo: g("batchNo"),
+    });
+  });
+  return { rows, errors };
+}
+
+/** Batches expiring within `days` (incl. already expired), grouped by company, for return to SR. */
+export function expiryReturnList(st: PharmacyState, days: number) {
+  const limit = daysFromNow(days);
+  const t = today();
+  const items = st.medicines.flatMap((m) =>
+    getBatches(m)
+      .filter((b) => b.qty > 0 && b.expiry <= limit)
+      .map((b) => ({ m, b, expired: b.expiry < t, value: r2(b.qty * b.cost) })),
+  );
+  const map = new Map<string, typeof items>();
+  for (const i of items) {
+    const k = i.m.company || "অন্যান্য";
+    map.set(k, [...(map.get(k) ?? []), i]);
+  }
+  return [...map.entries()]
+    .map(([company, list]) => ({
+      company,
+      items: list.sort((a, b) => a.b.expiry.localeCompare(b.b.expiry)),
+      value: r2(list.reduce((a, i) => a + i.value, 0)),
+    }))
+    .sort((a, b) => b.value - a.value);
+}
