@@ -1028,12 +1028,21 @@ export function parseMedicineCsv(text: string): { rows: ImportRow[]; errors: str
   all.slice(1).forEach((r, n) => {
     const g = (k: keyof ImportRow) => (idx[k] >= 0 ? (r[idx[k]] ?? "").trim() : "");
     const name = g("name");
-    if (!name) return errors.push(`লাইন ${n + 2}: নাম নেই`);
+    if (!name) {
+      errors.push(`লাইন ${n + 2}: নাম নেই`);
+      return;
+    }
     const price = num(g("price"));
-    if (!price) return errors.push(`লাইন ${n + 2}: ${name} — বিক্রয়মূল্য নেই`);
+    if (!price) {
+      errors.push(`লাইন ${n + 2}: ${name} — বিক্রয়মূল্য নেই`);
+      return;
+    }
     const stock = Math.floor(num(g("stock")));
     let expiry = normDate(g("expiry"));
-    if (!expiry && stock > 0) return errors.push(`লাইন ${n + 2}: ${name} — মেয়াদের তারিখ ভুল`);
+    if (!expiry && stock > 0) {
+      errors.push(`লাইন ${n + 2}: ${name} — মেয়াদের তারিখ ভুল`);
+      return;
+    }
     if (!expiry) expiry = daysFromNow(365);
     const formRaw = g("form").toLowerCase();
     const form = FORMS.find((f) => f.toLowerCase() === formRaw) ?? "Tablet";
