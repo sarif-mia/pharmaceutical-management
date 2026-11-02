@@ -284,3 +284,15 @@ describe("split payment", () => {
     expect(z.byMethod.bkash - before.byMethod.bkash).toBeCloseTo(total - 5);
   });
 });
+
+describe("medicine CSV import", () => {
+  it("parses Bangla headers, MM/YYYY expiry and rejects rows without price", async () => {
+    const { parseMedicineCsv } = await import("@/lib/pharmacy-store");
+    const { rows, errors } = parseMedicineCsv(
+      "\uFEFFনাম,শক্তি,স্টক,বিক্রয়মূল্য,মেয়াদ\nNapa,500mg,100,1.2,06/2027\nBad,1mg,5,,2027-01-01\n",
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ name: "Napa", stock: 100, price: 1.2, expiry: "2027-06-30" });
+    expect(errors).toHaveLength(1);
+  });
+});

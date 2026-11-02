@@ -5,7 +5,7 @@ import { Field, PageTitle, Panel, selectCls } from "@/components/shared/page-ui"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { pageHead } from "@/lib/meta";
-import { actions, getState, today, usePharmacy } from "@/lib/pharmacy-store";
+import { actions, getState, parseMedicineCsv, today, usePharmacy } from "@/lib/pharmacy-store";
 
 function csv(name: string, rows: (string | number)[][]) {
   const body = rows
@@ -177,6 +177,50 @@ function SettingsPage() {
               }}
             >
               <FileSpreadsheet className="h-4 w-4" /> বিক্রি
+            </Button>
+          </div>
+          <p className="mb-2 mt-5 text-sm font-medium">ওষুধ একসাথে আপলোড (CSV)</p>
+          <p className="mb-2 text-xs text-muted-foreground">
+            কলাম: নাম, জেনেরিক, শক্তি, কোম্পানি, স্টক, ক্রয়মূল্য, বিক্রয়মূল্য, মেয়াদ (2026-12-31 বা
+            12/2026), ব্যাচ, বারকোড, পাতা। একই নাম ও শক্তির ওষুধ থাকলে নতুন ব্যাচ হিসেবে যোগ হবে।
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                csv("medicine-template.csv", [
+                  ["নাম", "জেনেরিক", "শক্তি", "কোম্পানি", "স্টক", "ক্রয়মূল্য", "বিক্রয়মূল্য", "মেয়াদ", "ব্যাচ", "বারকোড", "পাতা"],
+                  ["Napa", "Paracetamol", "500mg", "Beximco", 100, 0.9, 1.2, "2027-06-30", "B123", "", 10],
+                ])
+              }
+            >
+              <Download className="h-4 w-4" /> নমুনা ফাইল
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <label className="cursor-pointer">
+                <Upload className="h-4 w-4" /> CSV আপলোড
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!f) return;
+                    const { rows, errors } = parseMedicineCsv(await f.text());
+                    if (!rows.length) {
+                      toast.error(errors[0] ?? "ফাইলে কোনো ওষুধ পাওয়া যায়নি");
+                      return;
+                    }
+                    if (!confirm(`${rows.length}টি ওষুধ যোগ হবে${errors.length ? `, ${errors.length}টি লাইন বাদ যাবে` : ""}। চালিয়ে যাবেন?`))
+                      return;
+                    const r = actions.importMedicines(rows);
+                    toast.success(`নতুন ${r.added}টি, আপডেট ${r.updated}টি`);
+                    if (errors.length) toast.warning(errors.slice(0, 3).join("\n"));
+                  }}
+                />
+              </label>
             </Button>
           </div>
         </Panel>

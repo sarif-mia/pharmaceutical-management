@@ -13,6 +13,7 @@ import {
   UserCog,
   Calculator,
   ClipboardList,
+  CalendarClock,
 } from "lucide-react";
 
 export const navigationGroups = [
@@ -31,6 +32,7 @@ export const navigationGroups = [
       { to: "/medicines", label: "ওষুধ ও ব্যাচ স্টক", shortLabel: "স্টক", icon: Pill },
       { to: "/purchases", label: "ক্রয় / চালান", shortLabel: "ক্রয়", icon: PackagePlus },
       { to: "/shortage", label: "ঘাটতি খাতা", shortLabel: "ঘাটতি", icon: ClipboardList },
+      { to: "/expiry", label: "মেয়াদ শেষ তালিকা", shortLabel: "মেয়াদ", icon: CalendarClock },
       { to: "/categories", label: "ক্যাটাগরি", shortLabel: "ক্যাটাগরি", icon: Tags },
     ],
   },
