@@ -14,6 +14,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ClosingRouteImport } from './routes/closing'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as ExpensesRouteImport } from './routes/expenses'
+import { Route as ExpiryRouteImport } from './routes/expiry'
 import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as MedicinesRouteImport } from './routes/medicines'
 import { Route as PurchasesRouteImport } from './routes/purchases'
@@ -47,6 +48,11 @@ const CustomersRoute = CustomersRouteImport.update({
 const ExpensesRoute = ExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpiryRoute = ExpiryRouteImport.update({
+  id: '/expiry',
+  path: '/expiry',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvoicesRoute = InvoicesRouteImport.update({
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/closing': typeof ClosingRoute
   '/customers': typeof CustomersRoute
   '/expenses': typeof ExpensesRoute
+  '/expiry': typeof ExpiryRoute
   '/invoices': typeof InvoicesRoute
   '/medicines': typeof MedicinesRoute
   '/purchases': typeof PurchasesRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/closing': typeof ClosingRoute
   '/customers': typeof CustomersRoute
   '/expenses': typeof ExpensesRoute
+  '/expiry': typeof ExpiryRoute
   '/invoices': typeof InvoicesRoute
   '/medicines': typeof MedicinesRoute
   '/purchases': typeof PurchasesRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/closing': typeof ClosingRoute
   '/customers': typeof CustomersRoute
   '/expenses': typeof ExpensesRoute
+  '/expiry': typeof ExpiryRoute
   '/invoices': typeof InvoicesRoute
   '/medicines': typeof MedicinesRoute
   '/purchases': typeof PurchasesRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/closing'
     | '/customers'
     | '/expenses'
+    | '/expiry'
     | '/invoices'
     | '/medicines'
     | '/purchases'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/closing'
     | '/customers'
     | '/expenses'
+    | '/expiry'
     | '/invoices'
     | '/medicines'
     | '/purchases'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/closing'
     | '/customers'
     | '/expenses'
+    | '/expiry'
     | '/invoices'
     | '/medicines'
     | '/purchases'
@@ -201,6 +213,7 @@ export interface RootRouteChildren {
   ClosingRoute: typeof ClosingRoute
   CustomersRoute: typeof CustomersRoute
   ExpensesRoute: typeof ExpensesRoute
+  ExpiryRoute: typeof ExpiryRoute
   InvoicesRoute: typeof InvoicesRoute
   MedicinesRoute: typeof MedicinesRoute
   PurchasesRoute: typeof PurchasesRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/expenses'
       fullPath: '/expenses'
       preLoaderRoute: typeof ExpensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expiry': {
+      id: '/expiry'
+      path: '/expiry'
+      fullPath: '/expiry'
+      preLoaderRoute: typeof ExpiryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invoices': {
@@ -321,6 +341,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClosingRoute: ClosingRoute,
   CustomersRoute: CustomersRoute,
   ExpensesRoute: ExpensesRoute,
+  ExpiryRoute: ExpiryRoute,
   InvoicesRoute: InvoicesRoute,
   MedicinesRoute: MedicinesRoute,
   PurchasesRoute: PurchasesRoute,
